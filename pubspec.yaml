@@ -1,0 +1,41 @@
+name: dailyreadings
+description: A Flutter app to display the daily readings of the catholic liturgy
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.12.0-29 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.0
+  firebase_core: ^0.4.0+9
+  firebase_analytics: ^5.0.2
+  cloud_firestore: ^0.12.9+5
+  flutter_sfsymbols: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Charter
+      fonts:
+        - asset: fonts/Charter Regular.ttf
+        - asset: fonts/Charter Bold.ttf
+          weight: 700
+        - asset: fonts/Charter Italic.ttf
+          style: italic
+        - asset: fonts/Charter Bold Italic.ttf
+          weight: 700
+          style: italic
+    - family: sficonsets
+      fonts:
+        - asset: packages/flutter_sfsymbols/fonts/sficonsets.ttf

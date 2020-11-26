@@ -5,40 +5,70 @@ import 'utils.dart';
 
 class ControlsBar extends StatelessWidget {
   final DateTime? date;
+  final Function() calendarTapCallback;
+  final Function() settingsTapCallback;
+  final ControlsBarSelection selection;
 
-  const ControlsBar({Key? key, this.date}) : super(key: key);
+  const ControlsBar(
+      {Key? key,
+      required this.date,
+      required this.calendarTapCallback,
+      required this.settingsTapCallback,
+      required this.selection})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      margin: EdgeInsets.only(right: 10),
+      child: Material(
+        borderRadius: BorderRadius.circular(7),
+        clipBehavior: Clip.antiAlias,
         color: Colors.grey[300],
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            InkWell(
+              // TODO: inherit colors
+              child: Container(
+                padding: EdgeInsets.all(7),
+                child: Row(
+                  children: [
+                    Icon(SFSymbols.calendar,
+                        color: selection == ControlsBarSelection.calendar
+                            ? Colors.black
+                            : Colors.grey),
+                    SizedBox(width: 10),
+                    Text((date ?? DateTime.now()).toLocaleDateString(),
+                        style: TextStyle(
+                            color: selection == ControlsBarSelection.calendar
+                                ? Colors.black
+                                : Colors.grey)),
+                  ],
+                ),
+              ),
+              onTap: calendarTapCallback,
+            ),
+            DecoratedBox(
+              child: SizedBox(width: 1, height: 20),
+              decoration: BoxDecoration(color: Colors.grey),
+            ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.all(7),
+                child: Icon(SFSymbols.gear,
+                    color: selection == ControlsBarSelection.settings
+                        ? Colors.black
+                        : Colors.grey),
+              ),
+              onTap: settingsTapCallback,
+            )
+          ],
+        ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          IconButton(
-            icon: Icon(SFSymbols.calendar, color: Colors.grey),
-            padding: EdgeInsets.zero,
-            onPressed: () => {},
-          ),
-          Text((date ?? DateTime.now()).toLocaleDateString(),
-              style: TextStyle(color: Colors.grey)),
-          SizedBox(width: 20),
-          DecoratedBox(
-            child: SizedBox(width: 1, height: 20),
-            decoration: BoxDecoration(color: Colors.grey),
-          ),
-          IconButton(
-            icon: Icon(SFSymbols.gear, color: Colors.grey),
-            padding: EdgeInsets.zero,
-            onPressed: () => {},
-          )
-        ],
-      ),
-      margin: EdgeInsets.only(right: 20),
     );
   }
 }
+
+enum ControlsBarSelection { calendar, settings, none }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'ReadingsRepository.dart';
+import 'readings_repository.dart';
 import 'utils.dart';
 
-class ReadingsWidget extends StatelessWidget {
+class ReadingsDisplay extends StatelessWidget {
   final ReadingsData data;
-  const ReadingsWidget({Key? key, required this.data}) : super(key: key);
+  const ReadingsDisplay({Key? key, required this.data}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

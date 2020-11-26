@@ -3,10 +3,10 @@ import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import 'utils.dart';
 
-class ControlsBarWidget extends StatelessWidget {
+class ControlsBar extends StatelessWidget {
   final DateTime? date;
 
-  const ControlsBarWidget({Key? key, this.date}) : super(key: key);
+  const ControlsBar({Key? key, this.date}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

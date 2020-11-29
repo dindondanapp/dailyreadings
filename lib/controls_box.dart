@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
 
+import 'calendar_control.dart';
+
 class ControlsBox extends StatelessWidget {
+  final void Function(DateTime day) onChangeDay;
+  final CalendarController calendarController;
+
+  const ControlsBox(
+      {Key? key, required this.onChangeDay, required this.calendarController})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return CalendarControl();
-  }
-}
-
-class CalendarControl extends StatefulWidget {
-  @override
-  _CalendarControlState createState() => _CalendarControlState();
-}
-
-class _CalendarControlState extends State<CalendarControl> {
-  @override
-  Widget build(BuildContext context) {
-    return _buildCalendar(DateTime.now());
-  }
-
-  Widget _buildCalendar(DateTime time) {
-    return Column();
+    return SafeArea(
+      child: Container(
+        child: Center(
+          child: Calendar(
+            onSelect: onChangeDay,
+            controller: calendarController,
+          ),
+        ),
+        margin: EdgeInsets.only(
+          top: 60,
+        ),
+      ),
+    );
   }
 }

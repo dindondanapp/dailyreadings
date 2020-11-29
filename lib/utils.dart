@@ -40,10 +40,16 @@ extension Saturation on num {
 }
 
 extension LocaleString on DateTime {
+  bool isSameYear(DateTime compare) {
+    return this.toLocal().year == compare.year;
+  }
+
+  bool isSameMonth(DateTime compare) {
+    return isSameYear(compare) && this.toLocal().month == compare.month;
+  }
+
   bool isSameDay(DateTime compare) {
-    return (this.toLocal().year == compare.year &&
-        this.toLocal().month == compare.month &&
-        this.toLocal().day == compare.day);
+    return isSameMonth(compare) && this.toLocal().day == compare.day;
   }
 
   static final localeMonths = [
@@ -88,7 +94,16 @@ extension LocaleString on DateTime {
     }
   }
 
-  String toLocaleWeekday() => localeWeekdays[this.weekday];
+  String toLocaleWeekday() => localeWeekdays[this.weekday - 1];
+
+  String toLocaleMonthString() {
+    final today = DateTime.now();
+    if (this.isSameYear(today)) {
+      return localeMonths[this.month - 1];
+    } else {
+      return '${localeMonths[this.month - 1]} ${this.year}';
+    }
+  }
 }
 
 extension EnumSerialization on Object {

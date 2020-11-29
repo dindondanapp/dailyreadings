@@ -1,3 +1,4 @@
+import 'package:dailyreadings/calendar_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,16 +14,23 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final ReadingsRepository repository = ReadingsRepository(
+  ReadingsRepository repository = ReadingsRepository(
       ReadingsDataIdentifier(date: DateTime.now(), rite: Rite.roman));
-  ScrollController _controller = ScrollController();
+  ScrollController scrollController = ScrollController();
   num _controlsBarOpacity = 1;
+  final CalendarController calendarController =
+      CalendarController(DateTime.now());
+
+  set date(value) {
+    repository = ReadingsRepository(ReadingsDataIdentifier(
+        date: calendarController.value, rite: Rite.roman));
+  }
 
   ControlsBarSelection __controlsBarSelection = ControlsBarSelection.none;
   ControlsBarSelection get _controlsBarSelection => __controlsBarSelection;
 
   set _controlsBarSelection(ControlsBarSelection value) {
-    _controller.animateTo(
+    scrollController.animateTo(
       0,
       duration: Duration(seconds: 1),
       curve: Curves.easeOut,
@@ -33,27 +41,34 @@ class _HomeState extends State<Home> {
 
   num get _controlsBoxOpacity =>
       _controlsBarSelection == ControlsBarSelection.none ? 0 : 1;
-  num get _controlsBoxHeight =>
-      _controlsBarSelection == ControlsBarSelection.none ? 0 : 300;
+  num? get _controlsBoxHeight =>
+      _controlsBarSelection == ControlsBarSelection.none ? 0 : null;
 
   @override
   void initState() {
     // Change controls opacity to only show them when the page is scrolled up
-    _controller.addListener(() {
+    scrollController.addListener(() {
       final offsetStart = 30;
       final offsetEnd = 40;
 
-      if (_controller.offset < offsetStart) {
+      if (scrollController.offset < offsetStart) {
         setState(() {
           _controlsBarOpacity = 1;
         });
       }
 
-      if (_controller.offset > offsetEnd) {
+      if (scrollController.offset > offsetEnd) {
         setState(() {
           _controlsBarOpacity = 0;
         });
       }
+    });
+
+    calendarController.addListener(() {
+      setState(() {
+        repository = ReadingsRepository(ReadingsDataIdentifier(
+            date: calendarController.value, rite: Rite.roman));
+      });
     });
 
     super.initState();
@@ -84,7 +99,7 @@ class _HomeState extends State<Home> {
                         }
                       },
                       child: ListView(
-                        controller: _controller,
+                        controller: scrollController,
                         physics:
                             _controlsBarSelection == ControlsBarSelection.none
                                 ? ClampingScrollPhysics()
@@ -210,11 +225,13 @@ class _HomeState extends State<Home> {
       child: AnimatedContainer(
         duration: Duration(seconds: 1),
         curve: Curves.fastOutSlowIn,
-        height: _controlsBoxHeight.toDouble(),
-        child: Material(
-          color: Colors.grey[300],
-          elevation: 2,
-          child: ControlsBox(),
+        height:
+            _controlsBoxHeight != null ? _controlsBoxHeight!.toDouble() : 400,
+        child: ControlsBox(
+          calendarController: calendarController,
+          onChangeDay: (date) {
+            calendarController.value = date;
+          },
         ),
       ),
     );

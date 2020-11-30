@@ -53,7 +53,7 @@ class _CalendarState extends State<Calendar> {
     );
   }
 
-  // Build a month page widget, wich consists of a table of days
+  // Build a month page widget, which consists of a table of days
   Widget _buildMonthPage(Month month, Day selected) {
     final firstDay = Day(month.year, month.month, 1);
     final totalDays = DateUtil().daysInMonth(firstDay.month, firstDay.year);
@@ -110,7 +110,7 @@ class _CalendarState extends State<Calendar> {
   // - it is selected
   // - it is today
   // - it belongs to the displayed month
-  // - it belongs to the previos or next month
+  // - it belongs to the previous or next month
 
   Widget _buildDay({
     required Day day,

@@ -46,3 +46,6 @@ GoogleService-Info.plist
 
 # Visual Studio Code configuration
 /.vscode
+
+# Very early development stuff
+/macos/

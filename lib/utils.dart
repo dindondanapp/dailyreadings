@@ -88,9 +88,9 @@ extension LocaleString on DateTime {
     }
 
     if (today.difference(this) > Duration(days: 90)) {
-      return '${this.day} ${localeMonths[this.month]} ${this.year}';
+      return '${this.day} ${localeMonths[this.month - 1]} ${this.year}';
     } else {
-      return '${this.day} ${localeMonths[this.month]}';
+      return '${this.day} ${localeMonths[this.month - 1]}';
     }
   }
 
@@ -99,10 +99,57 @@ extension LocaleString on DateTime {
   String toLocaleMonthString() {
     final today = DateTime.now();
     if (this.isSameYear(today)) {
-      return localeMonths[this.month - 1];
+      return localeMonths[this.month - 1].toString();
     } else {
       return '${localeMonths[this.month - 1]} ${this.year}';
     }
+  }
+}
+
+class Year extends DateTime {
+  Year(int year) : super(year);
+
+  Year.fromDateTime(DateTime dateTime) : super(dateTime.year);
+
+  Year.now() : super(DateTime.now().year);
+
+  @override
+  Year add(Duration duration) {
+    final updatedDateTime = super.add(duration);
+    return Year(updatedDateTime.year);
+  }
+}
+
+class Month extends DateTime {
+  Month(int year, int month) : super(year, month);
+
+  Month.fromDateTime(DateTime dateTime) : super(dateTime.year, dateTime.month);
+
+  Month.now() : super(DateTime.now().year, DateTime.now().month);
+
+  @override
+  Month add(Duration duration) {
+    final updatedDateTime = super.add(duration);
+    return Month(updatedDateTime.year, updatedDateTime.month);
+  }
+}
+
+class Day extends DateTime {
+  Day(int year, int month, int day) : super(year, month, day);
+
+  Day.fromDateTime(DateTime dateTime)
+      : super(dateTime.year, dateTime.month, dateTime.day);
+  Day.now()
+      : super(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+  @override
+  Day add(Duration duration) {
+    final updatedDateTime = super.add(duration);
+    return Day(
+      updatedDateTime.year,
+      updatedDateTime.month,
+      updatedDateTime.day,
+    );
   }
 }
 

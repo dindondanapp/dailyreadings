@@ -3,57 +3,77 @@ import 'package:flutter/material.dart';
 
 import 'utils.dart';
 
+/// A widget that displays a calendar and allows to select a day
 class Calendar extends StatefulWidget {
   final CalendarController controller;
-  final void Function(DateTime day) onSelect;
+  final void Function(Day day)? onSelect;
 
-  const Calendar({Key? key, required this.onSelect, required this.controller})
-      : super(key: key);
+  /// Creates a Calendar widget
+  /// A [controller] can be provided to modify the selected date and an
+  /// [onSelect] function can be used to listen to day selection
+  Calendar({Key? key, this.onSelect, CalendarController? controller})
+      : this.controller = controller != null
+            ? controller
+            : CalendarController(day: Day.now()),
+        super(key: key);
 
   @override
   _CalendarState createState() => _CalendarState();
 }
 
 class _CalendarState extends State<Calendar> {
+  // Initial page index of the PageController.
+  // Needs to be positive to allow scrolling in both directions.
   static int initialPage = 12;
+
+  // Controller of the PageView widget.
   final pageController = PageController(initialPage: initialPage);
-  final referenceDay = DateTime.now();
+
+  // The current month is used as the initial page
+  final initialPageMonth = Month.now();
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
         valueListenable: widget.controller,
-        builder: (context, DateTime date, _) => _buildCalendar(date));
+        builder: (context, CalendarControllerValue value, _) =>
+            _buildCalendar(value.day));
   }
 
-  Widget _buildCalendar(DateTime selected) {
+  // Build a calendar widget, that consists of a [PageView] with a page for each month
+  Widget _buildCalendar(Day selected) {
     return PageView.builder(
       controller: pageController,
       itemBuilder: (BuildContext context, index) {
         final monthOffset = index - initialPage;
-        return _buildMonth(
-            DateTime(referenceDay.year, referenceDay.month + monthOffset),
+        return _buildMonthPage(
+            Month(initialPageMonth.year, initialPageMonth.month + monthOffset),
             selected);
       },
     );
   }
 
-  Widget _buildMonth(DateTime date, DateTime selected) {
-    final firstDay = DateTime(date.year, date.month, 1);
+  // Build a month page widget, wich consists of a table of days
+  Widget _buildMonthPage(Month month, Day selected) {
+    final firstDay = Day(month.year, month.month, 1);
     final totalDays = DateUtil().daysInMonth(firstDay.month, firstDay.year);
     final totalWeeks = ((totalDays + (firstDay.weekday - 1)) / 7).ceil();
     final weekWidgets = List<TableRow>.generate(
       totalWeeks,
-      (week) => TableRow(
-        children: List<Widget>.generate(7, (weekday) {
-          final day = firstDay
-              .add(Duration(days: week * 7 + weekday - (firstDay.weekday - 1)));
+      (weekIndex) => TableRow(
+        children: List<Widget>.generate(7, (weekdayIndex) {
+          final day = firstDay.add(
+            Duration(
+              days: weekIndex * 7 + weekdayIndex - (firstDay.weekday - 1),
+            ),
+          );
 
           return _buildDay(
               day: day,
-              month: date,
+              month: month,
               selected: selected,
-              onSelect: () => {widget.onSelect(day)});
+              onSelect: () =>
+                  {if (widget.onSelect != null) widget.onSelect!(day)});
         }),
       ),
     );
@@ -63,7 +83,7 @@ class _CalendarState extends State<Calendar> {
         Align(
           alignment: Alignment.topCenter,
           child: Text(
-            date.toLocaleMonthString().toUpperCase(),
+            month.toLocaleMonthString().toUpperCase(),
             style: TextStyle(
               color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.bold,
@@ -86,14 +106,21 @@ class _CalendarState extends State<Calendar> {
     );
   }
 
-  Widget _buildDay(
-      {required DateTime day,
-      required DateTime month,
-      required DateTime selected,
-      void Function()? onSelect}) {
+  // Build a day widget, with a different style whether:
+  // - it is selected
+  // - it is today
+  // - it belongs to the displayed month
+  // - it belongs to the previos or next month
+
+  Widget _buildDay({
+    required Day day,
+    required Month month,
+    required Day selected,
+    void Function()? onSelect,
+  }) {
     final isSameDay = day.isSameDay(selected);
 
-    final today = DateTime.now();
+    final today = Day.now();
     final isToday = day.isSameDay(today);
 
     final color = isSameDay
@@ -135,6 +162,21 @@ class _CalendarState extends State<Calendar> {
   }
 }
 
-class CalendarController extends ValueNotifier<DateTime> {
-  CalendarController(DateTime date) : super(date);
+/// A simple controller for the date of
+class CalendarController extends ValueNotifier<CalendarControllerValue> {
+  CalendarController({required Day day})
+      : super(CalendarControllerValue(day: day));
+
+  CalendarController.fromValue(CalendarControllerValue value) : super(value);
+
+  get day => value.day;
+  set day(day) {
+    value = CalendarControllerValue(day: day);
+  }
+}
+
+class CalendarControllerValue {
+  final Day day;
+
+  CalendarControllerValue({required this.day});
 }

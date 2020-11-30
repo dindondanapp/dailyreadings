@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'calendar_control.dart';
+import 'utils.dart';
 
 class ControlsBox extends StatelessWidget {
-  final void Function(DateTime day) onChangeDay;
+  final void Function(Day day) onChangeDay;
   final CalendarController calendarController;
 
   const ControlsBox(

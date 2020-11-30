@@ -6,6 +6,7 @@ import 'controls_bar.dart';
 import 'controls_box.dart';
 import 'readings_display.dart';
 import 'readings_repository.dart';
+import 'utils.dart';
 
 class Home extends StatefulWidget {
   Home({Key? key}) : super(key: key);
@@ -15,15 +16,17 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   ReadingsRepository repository = ReadingsRepository(
-      ReadingsDataIdentifier(date: DateTime.now(), rite: Rite.roman));
+      ReadingsDataIdentifier(day: Day.now(), rite: Rite.roman));
   ScrollController scrollController = ScrollController();
   num _controlsBarOpacity = 1;
   final CalendarController calendarController =
-      CalendarController(DateTime.now());
+      CalendarController(day: Day.now());
 
   set date(value) {
-    repository = ReadingsRepository(ReadingsDataIdentifier(
-        date: calendarController.value, rite: Rite.roman));
+    repository = ReadingsRepository(
+      ReadingsDataIdentifier(
+          day: calendarController.value.day, rite: Rite.roman),
+    );
   }
 
   ControlsBarSelection __controlsBarSelection = ControlsBarSelection.none;
@@ -67,7 +70,7 @@ class _HomeState extends State<Home> {
     calendarController.addListener(() {
       setState(() {
         repository = ReadingsRepository(ReadingsDataIdentifier(
-            date: calendarController.value, rite: Rite.roman));
+            day: calendarController.day, rite: Rite.roman));
       });
     });
 
@@ -229,8 +232,8 @@ class _HomeState extends State<Home> {
             _controlsBoxHeight != null ? _controlsBoxHeight!.toDouble() : 400,
         child: ControlsBox(
           calendarController: calendarController,
-          onChangeDay: (date) {
-            calendarController.value = date;
+          onChangeDay: (day) {
+            calendarController.day = day;
           },
         ),
       ),

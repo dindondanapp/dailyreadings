@@ -11,7 +11,7 @@ class ReadingsRepository {
   /// A stream of [ReadingsData] objects
   final Stream<ReadingsData> readingsStream;
 
-  /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [date]
+  /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [day]
   static Stream<ReadingsData> getReadingsStream(ReadingsDataIdentifier id) {
     print(id);
     return Firestore.instance
@@ -26,15 +26,15 @@ class ReadingsRepository {
 }
 
 class ReadingsDataIdentifier {
-  final DateTime date;
+  final Day day;
   final Rite rite;
 
   /// Creates a unique identifier for a set of daily readings, that can be se
-  ReadingsDataIdentifier({required this.date, required this.rite});
+  ReadingsDataIdentifier({required this.day, required this.rite});
 
   /// Returns a serialized identifier in a standard format consistent with the remote repository
   String serialize() {
-    return '${this.date.toLocal().year}-${this.date.toLocal().month}-${this.date.toLocal().day}-${this.rite.enumSerialize()}';
+    return '${this.day.toLocal().year}-${this.day.toLocal().month}-${this.day.toLocal().day}-${this.rite.enumSerialize()}';
   }
 
   @override

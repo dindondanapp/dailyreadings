@@ -9,13 +9,17 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  static final dinDonDanBlue = Color(0xFF6E95CB);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Letture del giorno',
       theme: ThemeData(
-        primarySwatch: Color(0xFF6E95CB).toMaterialColor(),
+        primarySwatch: dinDonDanBlue.toMaterialColor(),
       ),
+      darkTheme:
+          ThemeData(brightness: Brightness.dark, primarySwatch: Colors.orange),
       home: Home(),
       debugShowCheckedModeBanner: false,
     );

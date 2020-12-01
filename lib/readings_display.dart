@@ -76,6 +76,7 @@ class BlockWidget extends StatelessWidget {
           style: TextStyle(
             color: Theme.of(context).primaryColor,
             fontWeight: FontWeight.bold,
+            fontSize: DefaultTextStyle.of(context).style.fontSize ?? 14,
             fontFamily: 'SF Pro',
           ),
         ),

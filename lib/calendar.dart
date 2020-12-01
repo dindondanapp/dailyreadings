@@ -6,12 +6,11 @@ import 'utils.dart';
 /// A widget that displays a calendar and allows to select a day
 class Calendar extends StatefulWidget {
   final CalendarController controller;
-  final void Function(Day day)? onSelect;
 
   /// Creates a Calendar widget
   /// A [controller] can be provided to modify the selected date and an
   /// [onSelect] function can be used to listen to day selection
-  Calendar({Key? key, this.onSelect, CalendarController? controller})
+  Calendar({Key? key, CalendarController? controller})
       : this.controller = controller != null
             ? controller
             : CalendarController(day: Day.now()),
@@ -58,6 +57,16 @@ class _CalendarState extends State<Calendar> {
     final firstDay = Day(month.year, month.month, 1);
     final totalDays = DateUtil().daysInMonth(firstDay.month, firstDay.year);
     final totalWeeks = ((totalDays + (firstDay.weekday - 1)) / 7).ceil();
+    final headingRow = TableRow(
+      children: ['L', 'M', 'M', 'G', 'V', 'S', 'D']
+          .map(
+            (e) => Text(
+              e,
+              textAlign: TextAlign.center,
+            ),
+          )
+          .toList(),
+    );
     final weekWidgets = List<TableRow>.generate(
       totalWeeks,
       (weekIndex) => TableRow(
@@ -72,8 +81,7 @@ class _CalendarState extends State<Calendar> {
               day: day,
               month: month,
               selected: selected,
-              onSelect: () =>
-                  {if (widget.onSelect != null) widget.onSelect!(day)});
+              onSelect: () => widget.controller.day = day);
         }),
       ),
     );
@@ -96,7 +104,7 @@ class _CalendarState extends State<Calendar> {
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 300, minHeight: 150),
               child: Table(
-                children: weekWidgets,
+                children: [headingRow, ...weekWidgets],
                 defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               ),
             ),

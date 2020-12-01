@@ -1,3 +1,4 @@
+import 'package:dailyreadings/controls_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
@@ -7,14 +8,14 @@ class ControlsBar extends StatelessWidget {
   final DateTime? date;
   final Function() calendarTapCallback;
   final Function() settingsTapCallback;
-  final ControlsBarSelection selection;
+  final ControlsState state;
 
   const ControlsBar(
       {Key? key,
       required this.date,
       required this.calendarTapCallback,
       required this.settingsTapCallback,
-      required this.selection})
+      required this.state})
       : super(key: key);
 
   @override
@@ -36,15 +37,20 @@ class ControlsBar extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(SFSymbols.calendar,
-                        color: selection == ControlsBarSelection.calendar
+                        color: state.boxOpen &&
+                                state.selection == ControlsBoxSelection.calendar
                             ? Colors.black
                             : Colors.grey),
                     SizedBox(width: 10),
-                    Text((date ?? DateTime.now()).toLocaleDateString(),
-                        style: TextStyle(
-                            color: selection == ControlsBarSelection.calendar
-                                ? Colors.black
-                                : Colors.grey)),
+                    Text(
+                      (date ?? DateTime.now()).toLocaleDateString(),
+                      style: TextStyle(
+                          color: state.boxOpen &&
+                                  state.selection ==
+                                      ControlsBoxSelection.calendar
+                              ? Colors.black
+                              : Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -58,7 +64,8 @@ class ControlsBar extends StatelessWidget {
               child: Container(
                 padding: EdgeInsets.all(7),
                 child: Icon(SFSymbols.gear,
-                    color: selection == ControlsBarSelection.settings
+                    color: state.boxOpen &&
+                            state.selection == ControlsBoxSelection.settings
                         ? Colors.black
                         : Colors.grey),
               ),
@@ -70,5 +77,3 @@ class ControlsBar extends StatelessWidget {
     );
   }
 }
-
-enum ControlsBarSelection { calendar, settings, none }

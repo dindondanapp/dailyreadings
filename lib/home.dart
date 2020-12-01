@@ -1,4 +1,4 @@
-import 'package:dailyreadings/calendar_control.dart';
+import 'package:dailyreadings/calendar.dart';
 import 'package:dailyreadings/settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,17 +36,21 @@ class _HomeState extends State<Home> {
   final CalendarController calendarController =
       CalendarController(day: Day.now());
 
-  ControlsBarSelection __controlsBarSelection = ControlsBarSelection.none;
-  ControlsBarSelection get _controlsBarSelection => __controlsBarSelection;
+  ControlsState __controlsState = ControlsState(
+    boxOpen: false,
+    selection: ControlsBoxSelection.calendar,
+  );
 
-  set _controlsBarSelection(ControlsBarSelection value) {
+  ControlsState get _controlsState => __controlsState;
+
+  set _controlsState(ControlsState value) {
     scrollController.animateTo(
       0,
       duration: Duration(seconds: 1),
       curve: Curves.easeOut,
     );
 
-    __controlsBarSelection = value;
+    __controlsState = value;
   }
 
   @override
@@ -74,6 +78,13 @@ class _HomeState extends State<Home> {
           _controlsBarOpacity = 0;
         });
       }
+    });
+
+    settings.addListener(() {
+      setState(() {
+        repository = ReadingsRepository(ReadingsDataIdentifier(
+            day: calendarController.day, rite: settings.rite));
+      });
     });
 
     calendarController.addListener(() {
@@ -104,37 +115,39 @@ class _HomeState extends State<Home> {
           data: brightness == Brightness.dark
               ? widget.darkTheme
               : widget.lightTheme,
-          child: DefaultTextStyle(
-            style: TextStyle(fontSize: settings.fontSize.toDouble()),
-            child: Scaffold(
-              body: Stack(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: Scaffold(
+            body: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ControlsBox(
+                      calendarController: calendarController,
+                      state: _controlsState,
+                      settingsRepository: settings,
+                      onChangeDay: (day) {
+                        calendarController.day = day;
+                      },
+                    ),
+                    DefaultTextStyle(
+                      style: TextStyle(
+                          fontSize: settings.fontSize.toDouble(),
+                          color: Colors.black),
+                      child: _buildReader(),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ControlsBox(
-                        calendarController: calendarController,
-                        selection: _controlsBarSelection,
-                        settingsRepository: settings,
-                        onChangeDay: (day) {
-                          calendarController.day = day;
-                        },
-                      ),
-                      _buildReader(),
+                      Expanded(child: Container()),
+                      _buildControlsBar(),
                     ],
                   ),
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: Container()),
-                        _buildControlsBar(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
@@ -148,15 +161,15 @@ class _HomeState extends State<Home> {
         children: [
           GestureDetector(
             onTap: () {
-              if (_controlsBarSelection != ControlsBarSelection.none) {
+              if (_controlsState.boxOpen) {
                 setState(() {
-                  _controlsBarSelection = ControlsBarSelection.none;
+                  _controlsState = _controlsState.rebuildWith(boxOpen: false);
                 });
               }
             },
             child: ListView(
               controller: scrollController,
-              physics: _controlsBarSelection == ControlsBarSelection.none
+              physics: !_controlsState.boxOpen
                   ? ClampingScrollPhysics()
                   : NeverScrollableScrollPhysics(),
               padding: EdgeInsets.only(
@@ -187,9 +200,7 @@ class _HomeState extends State<Home> {
               ],
             ),
           ),
-          ..._controlsBarSelection == ControlsBarSelection.none
-              ? [StatusBarBlendCover()]
-              : [],
+          ...!_controlsState.boxOpen ? [StatusBarBlendCover()] : [],
         ],
       ),
     );
@@ -199,27 +210,31 @@ class _HomeState extends State<Home> {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10),
       child: AnimatedOpacity(
-        opacity: (_controlsBarSelection == ControlsBarSelection.none
-            ? _controlsBarOpacity.toDouble()
-            : 1),
+        opacity: (!_controlsState.boxOpen ? _controlsBarOpacity.toDouble() : 1),
         duration: Duration(milliseconds: 200),
         child: StreamBuilder<ReadingsData>(
           stream: repository!.readingsStream,
           builder: (context, snapshot) => ControlsBar(
             date: snapshot.data != null ? snapshot.data!.date : null,
             calendarTapCallback: () => setState(() {
-              _controlsBarSelection =
-                  _controlsBarSelection == ControlsBarSelection.calendar
-                      ? ControlsBarSelection.none
-                      : ControlsBarSelection.calendar;
+              if (_controlsState.selection == ControlsBoxSelection.calendar &&
+                  _controlsState.boxOpen) {
+                _controlsState = _controlsState.rebuildWith(boxOpen: false);
+              } else {
+                _controlsState = _controlsState.rebuildWith(
+                    boxOpen: true, selection: ControlsBoxSelection.calendar);
+              }
             }),
             settingsTapCallback: () => setState(() {
-              _controlsBarSelection =
-                  _controlsBarSelection == ControlsBarSelection.settings
-                      ? ControlsBarSelection.none
-                      : ControlsBarSelection.settings;
+              if (_controlsState.selection == ControlsBoxSelection.settings &&
+                  _controlsState.boxOpen) {
+                _controlsState = _controlsState.rebuildWith(boxOpen: false);
+              } else {
+                _controlsState = _controlsState.rebuildWith(
+                    boxOpen: true, selection: ControlsBoxSelection.settings);
+              }
             }),
-            selection: _controlsBarSelection,
+            state: _controlsState,
           ),
         ),
       ),

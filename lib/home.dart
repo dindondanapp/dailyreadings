@@ -9,7 +9,9 @@ import 'readings_display.dart';
 import 'readings_repository.dart';
 import 'utils.dart';
 
+/// Main widget, that contains all the dynamic content of the app
 class Home extends StatefulWidget {
+  // TODO: Move somewhere else
   static final dinDonDanBlue = Color(0xFF6E95CB);
   final ThemeData lightTheme = ThemeData(
     primarySwatch: dinDonDanBlue.toMaterialColor(),
@@ -26,11 +28,16 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  // A repository for the settings stored in local preferences
   final SettingsRepository settings = SettingsRepository();
+
+  // A repository to access a remote reading. Will be initialized in initState.
   ReadingsRepository? repository;
 
+  // Controller to handle and manage the scrollview state
   ScrollController scrollController = ScrollController();
 
+  // TODO: move in a dedicated controller
   num _controlsBarOpacity = 1;
 
   final CalendarController calendarController =
@@ -253,6 +260,7 @@ class _HomeState extends State<Home> {
   }
 }
 
+/// Just a simple widget that creates a soft gradient between the status bar and the scrollable content
 class StatusBarBlendCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

@@ -9,7 +9,7 @@ class ControlsBar extends StatelessWidget {
   final Function() calendarTapCallback;
   final Function() settingsTapCallback;
   final ControlsState state;
-
+  // TODO: use a controller.
   const ControlsBar(
       {Key? key,
       required this.date,

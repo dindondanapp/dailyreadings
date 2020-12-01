@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'utils.dart';
@@ -9,19 +11,21 @@ class ReadingsRepository {
   ReadingsRepository(this.id) : readingsStream = getReadingsStream(id);
 
   /// A stream of [ReadingsData] objects
-  final Stream<ReadingsData> readingsStream;
+  final Stream<ReadingsSnapshot> readingsStream;
 
   /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [day]
-  static Stream<ReadingsData> getReadingsStream(ReadingsDataIdentifier id) {
-    print(id);
+  static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
     return Firestore.instance
         .collection('readings')
         .document(id.serialize())
         .snapshots()
-        .map<ReadingsData>(
-          (snapshot) => ReadingsData.fromFirebase(snapshot.data),
-        )
-        .asBroadcastStream();
+        .map<ReadingsSnapshot>((snapshot) {
+      if (snapshot.exists) {
+        return ReadingsSnapshot.fromFirebase(snapshot.data);
+      } else {
+        return ReadingsSnapshot.nonExistent();
+      }
+    }).asBroadcastStream();
   }
 }
 
@@ -47,29 +51,27 @@ class ReadingsDataIdentifier {
   int get hashCode => serialize().hashCode;
 }
 
-class ReadingsData {
-  final String title;
-  final Rite rite;
-  final Uri source;
-  final DateTime date;
-  final List<Section> sections;
+class ReadingsSnapshot {
+  final ReadingsData? data;
+  final bool exists;
+  final bool badFormat;
 
-  /// Creates a set of readings given its structured contents
-  ReadingsData({
-    required this.sections,
-    required this.title,
-    required this.rite,
-    required this.source,
-    required this.date,
-  });
+  ReadingsSnapshot.nonExistent()
+      : data = null,
+        exists = false,
+        badFormat = false;
 
   /// Creates a structured set of readings from a suitably formatted Cloud Firestore map
-  ReadingsData.fromFirebase(Map<String, dynamic> document)
-      : title = document["title"],
-        rite = parseRite(document["rite"])!,
-        source = Uri.tryParse(document["source"])!,
-        date = DateTime.tryParse(document["date"])!,
-        sections = parseSections(document["sections"]);
+  ReadingsSnapshot.fromFirebase(Map<String, dynamic> document)
+      : data = ReadingsData(
+          title: document["title"],
+          rite: parseRite(document["rite"])!,
+          source: Uri.tryParse(document["source"])!,
+          date: DateTime.tryParse(document["date"])!,
+          sections: parseSections(document["sections"]),
+        ),
+        exists = true,
+        badFormat = false;
 
   /// Returns a parsed rite from its serialized representation
   static Rite? parseRite(String string) {
@@ -81,7 +83,6 @@ class ReadingsData {
 
   /// Returns a list of parsed sections from
   static List<Section> parseSections(List data) {
-    print('Parsing sections…');
     // Create a map that matches the string representation of the section type to a valid [RomanSectionType]
     Map sectionTypeMatch = Map.fromEntries(
       RomanSectionType.values.map<MapEntry<String, RomanSectionType>>(
@@ -152,6 +153,23 @@ class ReadingsData {
       return null;
     }
   }
+}
+
+class ReadingsData {
+  final String title;
+  final Rite rite;
+  final Uri source;
+  final DateTime date;
+  final List<Section> sections;
+
+  /// Creates a set of readings given its structured contents
+  ReadingsData({
+    required this.sections,
+    required this.title,
+    required this.rite,
+    required this.source,
+    required this.date,
+  });
 }
 
 class Section {

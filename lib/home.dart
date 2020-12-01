@@ -81,10 +81,12 @@ class _HomeState extends State<Home> {
     });
 
     settings.addListener(() {
-      setState(() {
-        repository = ReadingsRepository(ReadingsDataIdentifier(
-            day: calendarController.day, rite: settings.rite));
-      });
+      if (repository == null || settings.rite != repository!.id.rite) {
+        setState(() {
+          repository = ReadingsRepository(ReadingsDataIdentifier(
+              day: calendarController.day, rite: settings.rite));
+        });
+      }
     });
 
     calendarController.addListener(() {
@@ -156,6 +158,8 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildReader() {
+    assert(repository != null);
+
     return Expanded(
       child: Stack(
         children: [
@@ -179,19 +183,29 @@ class _HomeState extends State<Home> {
                 top: MediaQuery.of(context).padding.top + 20,
               ),
               children: [
-                StreamBuilder<ReadingsData>(
-                  stream: repository!.readingsStream, // TODO: Better ideas?
+                StreamBuilder<ReadingsSnapshot>(
+                  stream: repository!.readingsStream,
                   builder: (context, snapshot) {
-                    if (snapshot.hasError || snapshot.data == null) {
+                    if (snapshot.hasError ||
+                        snapshot.data == null ||
+                        snapshot.data!.badFormat) {
                       print(snapshot.error);
-                      return Text('Something went wrong');
+                      return Text(
+                          'Something went wrong'); // TODO: Handle appropriately
                     }
 
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("Loading");
-                    }
-
-                    return ReadingsDisplay(data: snapshot.data!);
+                    return AnimatedOpacity(
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeInOut,
+                      opacity:
+                          snapshot.connectionState == ConnectionState.waiting
+                              ? 0.5
+                              : 1,
+                      child: snapshot.data!.exists
+                          ? ReadingsDisplay(data: snapshot.data!.data!)
+                          : Text(
+                              "Le letture per questo giorno non sono disponibili."),
+                    );
                   },
                 ),
                 SizedBox(
@@ -212,30 +226,27 @@ class _HomeState extends State<Home> {
       child: AnimatedOpacity(
         opacity: (!_controlsState.boxOpen ? _controlsBarOpacity.toDouble() : 1),
         duration: Duration(milliseconds: 200),
-        child: StreamBuilder<ReadingsData>(
-          stream: repository!.readingsStream,
-          builder: (context, snapshot) => ControlsBar(
-            date: snapshot.data != null ? snapshot.data!.date : null,
-            calendarTapCallback: () => setState(() {
-              if (_controlsState.selection == ControlsBoxSelection.calendar &&
-                  _controlsState.boxOpen) {
-                _controlsState = _controlsState.rebuildWith(boxOpen: false);
-              } else {
-                _controlsState = _controlsState.rebuildWith(
-                    boxOpen: true, selection: ControlsBoxSelection.calendar);
-              }
-            }),
-            settingsTapCallback: () => setState(() {
-              if (_controlsState.selection == ControlsBoxSelection.settings &&
-                  _controlsState.boxOpen) {
-                _controlsState = _controlsState.rebuildWith(boxOpen: false);
-              } else {
-                _controlsState = _controlsState.rebuildWith(
-                    boxOpen: true, selection: ControlsBoxSelection.settings);
-              }
-            }),
-            state: _controlsState,
-          ),
+        child: ControlsBar(
+          date: calendarController.day,
+          calendarTapCallback: () => setState(() {
+            if (_controlsState.selection == ControlsBoxSelection.calendar &&
+                _controlsState.boxOpen) {
+              _controlsState = _controlsState.rebuildWith(boxOpen: false);
+            } else {
+              _controlsState = _controlsState.rebuildWith(
+                  boxOpen: true, selection: ControlsBoxSelection.calendar);
+            }
+          }),
+          settingsTapCallback: () => setState(() {
+            if (_controlsState.selection == ControlsBoxSelection.settings &&
+                _controlsState.boxOpen) {
+              _controlsState = _controlsState.rebuildWith(boxOpen: false);
+            } else {
+              _controlsState = _controlsState.rebuildWith(
+                  boxOpen: true, selection: ControlsBoxSelection.settings);
+            }
+          }),
+          state: _controlsState,
         ),
       ),
     );

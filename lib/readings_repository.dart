@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import 'utils.dart';
 
@@ -15,13 +16,13 @@ class ReadingsRepository {
 
   /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [day]
   static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
-    return Firestore.instance
+    return FirebaseFirestore.instance
         .collection('readings')
-        .document(id.serialize())
+        .doc(id.serialize())
         .snapshots()
         .map<ReadingsSnapshot>((snapshot) {
       if (snapshot.exists) {
-        return ReadingsSnapshot.fromFirebase(snapshot.data);
+        return ReadingsSnapshot.fromFirebase(snapshot.data());
       } else {
         return ReadingsSnapshot.nonExistent();
       }
@@ -34,7 +35,7 @@ class ReadingsDataIdentifier {
   final Rite rite;
 
   /// Creates a unique identifier for a set of daily readings, that can be se
-  ReadingsDataIdentifier({required this.day, required this.rite});
+  ReadingsDataIdentifier({@required this.day, @required this.rite});
 
   /// Returns a serialized identifier in a standard format consistent with the remote repository
   String serialize() {
@@ -52,7 +53,7 @@ class ReadingsDataIdentifier {
 }
 
 class ReadingsSnapshot {
-  final ReadingsData? data;
+  final ReadingsData data;
   final bool exists;
   final bool badFormat;
 
@@ -65,16 +66,16 @@ class ReadingsSnapshot {
   ReadingsSnapshot.fromFirebase(Map<String, dynamic> document)
       : data = ReadingsData(
           title: document["title"],
-          rite: parseRite(document["rite"])!,
-          source: Uri.tryParse(document["source"])!,
-          date: DateTime.tryParse(document["date"])!,
+          rite: parseRite(document["rite"]),
+          source: Uri.tryParse(document["source"]),
+          date: DateTime.tryParse(document["date"]),
           sections: parseSections(document["sections"]),
         ),
         exists = true,
         badFormat = false;
 
   /// Returns a parsed rite from its serialized representation
-  static Rite? parseRite(String string) {
+  static Rite parseRite(String string) {
     Map riteMatchMap =
         Map.fromEntries(Rite.values.map((e) => MapEntry(e.enumSerialize(), e)));
 
@@ -85,14 +86,14 @@ class ReadingsSnapshot {
   static List<Section> parseSections(List data) {
     // Create a map that matches the string representation of the section type to a valid [RomanSectionType]
     Map sectionTypeMatch = Map.fromEntries(
-      RomanSectionType.values.map<MapEntry<String, RomanSectionType>>(
+      SectionType.values.map<MapEntry<String, SectionType>>(
         (value) => MapEntry(value.enumSerialize(), value),
       ),
     );
 
     if (data is List) {
       return data
-          .map<Section?>((element) {
+          .map<Section>((element) {
             if (element is Map &&
                 sectionTypeMatch.containsKey(element['name']) &&
                 element['alternatives'] is List) {
@@ -103,7 +104,6 @@ class ReadingsSnapshot {
                       (alternative) => parseSectionAlternative(alternative),
                     )
                     .where((e) => e != null)
-                    .map((e) => e!)
                     .toList(),
               );
             } else {
@@ -112,7 +112,6 @@ class ReadingsSnapshot {
             }
           })
           .where((e) => e != null)
-          .map((e) => e!)
           .toList();
     } else {
       print('Sections parsing failed for $data');
@@ -120,7 +119,7 @@ class ReadingsSnapshot {
     }
   }
 
-  static SectionAlternative? parseSectionAlternative(dynamic data) {
+  static SectionAlternative parseSectionAlternative(dynamic data) {
     // Create a map that matches the string representation of the section type to a valid [RomanSectionType]
     Map blockTypeMatch = Map.fromEntries(
       BlockType.values.map<MapEntry<String, BlockType>>(
@@ -130,7 +129,7 @@ class ReadingsSnapshot {
     if (data is Map && data["blocks"] is List) {
       return SectionAlternative(
         blocks: List.castFrom(data["blocks"])
-            .map<Block?>(
+            .map<Block>(
               (blockMap) {
                 if (blockMap is Map &&
                     blockTypeMatch.containsKey(blockMap['type'])) {
@@ -145,7 +144,6 @@ class ReadingsSnapshot {
               },
             )
             .where((e) => e != null)
-            .map((e) => e!)
             .toList(),
       );
     } else {
@@ -164,32 +162,32 @@ class ReadingsData {
 
   /// Creates a set of readings given its structured contents
   ReadingsData({
-    required this.sections,
-    required this.title,
-    required this.rite,
-    required this.source,
-    required this.date,
+    @required this.sections,
+    @required this.title,
+    @required this.rite,
+    @required this.source,
+    @required this.date,
   });
 }
 
 class Section {
-  final RomanSectionType name;
+  final SectionType name;
   final List<SectionAlternative> alternatives;
 
-  Section({required this.name, required this.alternatives});
+  Section({@required this.name, @required this.alternatives});
 }
 
 class SectionAlternative {
   final List<Block> blocks;
 
-  SectionAlternative({required this.blocks});
+  SectionAlternative({@required this.blocks});
 }
 
 class Block {
   final BlockType type;
   final String content;
 
-  Block({required this.type, required this.content});
+  Block({@required this.type, @required this.content});
 }
 
 enum BlockType {
@@ -202,36 +200,66 @@ enum BlockType {
   Space // Just an empty line
 }
 
-enum RomanSectionType {
-  AntiphonaAdIntroitum,
-  IncensatioAltaris,
-  Salutatio,
-  Aspersio,
-  ActusPaenitentialis,
-  KyrieGloria,
-  Collecta,
-  LectioPrima,
-  Psalmus,
-  LectioSecunda,
-  Alleluia,
-  Evangelium,
-  Homilia,
-  Credo,
-  OratioFidelium,
-  AntiphonaAdOffertorium,
-  Incensatio,
-  Lavabo,
-  OratioSuperOblata,
-  Praefatio,
-  Sactus,
-  CanonRomanus,
-  PaterNoster,
-  AgnusDei,
-  AntiphonaAdCommunionem,
-  AmmunioFidelium,
-  Postcommunio,
-  BenedictioEtDimissio,
-  GratiaActioPostMissam
+enum SectionType {
+  rAntiphonaAdIntroitum,
+  rIncensatioAltaris,
+  rSalutatio,
+  rAspersio,
+  rActusPaenitentialis,
+  rKyrieGloria,
+  rCollecta,
+  rLectioPrima,
+  rPsalmus,
+  rLectioSecunda,
+  rAlleluia,
+  rEvangelium,
+  rHomilia,
+  rCredo,
+  rOratioFidelium,
+  rAntiphonaAdOffertorium,
+  rIncensatio,
+  rLavabo,
+  rOratioSuperOblata,
+  rPraefatio,
+  rSactus,
+  rCanonRomanus,
+  rPaterNoster,
+  rAgnusDei,
+  rAntiphonaAdCommunionem,
+  rAmmunioFidelium,
+  rPostcommunio,
+  rBenedictioEtDimissio,
+  rGratiaActioPostMissam,
+  aAntiphonaAdIntroitum,
+  aIncensatioAltaris,
+  aSalutatio,
+  aAspersio,
+  aActusPaenitentialis,
+  aKyrieGloria,
+  aOratio,
+  aLectio,
+  aPsalmus,
+  aEpistula,
+  aAlleluia,
+  aEvangelium,
+  aPostEvangelium,
+  aHomilia,
+  aCredo,
+  aOratioFidelium,
+  aAntiphonaAdOffertorium,
+  aIncensatio,
+  aLavabo,
+  aOratioSuperOblata,
+  aPraefatio,
+  aSactus,
+  aCanonRomanus,
+  aPaterNoster,
+  aAgnusDei,
+  aAntiphonaAdCommunionem,
+  aAmmunioFidelium,
+  aPostcommunio,
+  aBenedictioEtDimissio,
+  aGratiaActioPostMissam,
 }
 
 enum Rite { ambrosian, roman }

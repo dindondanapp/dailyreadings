@@ -33,27 +33,27 @@ class SettingsRepository extends ValueNotifier<SettingsRepositoryValue> {
   SettingsRepository() : super(defaultValue) {
     _prefsFuture.then((prefs) {
       // Some functions to get preference values in an optional way
-      bool? _tryGetBool(key) {
+      bool _tryGetBool(key) {
         try {
           return prefs.getBool(key);
         } catch (_) {}
       }
 
-      double? _tryGetDouble(key) {
+      double _tryGetDouble(key) {
         try {
           return prefs.getDouble(key);
         } catch (_) {}
       }
 
-      String? _tryGetString(key) {
+      String _tryGetString(key) {
         try {
           return prefs.getString(key);
         } catch (_) {}
       }
 
       // Get stored settings and populate the value, with defaults if needed
-      final String? riteString = _tryGetString('rite');
-      final String? themeString = _tryGetString('theme');
+      final String riteString = _tryGetString('rite');
+      final String themeString = _tryGetString('theme');
 
       this.value = SettingsRepositoryValue(
         fontSize: _tryGetDouble('font_size') ?? defaultValue.fontSize,
@@ -94,19 +94,19 @@ class SettingsRepositoryValue {
   final bool firstTime;
 
   SettingsRepositoryValue({
-    required this.fontSize,
-    required this.rite,
-    required this.theme,
-    required this.firstTime,
-    required this.loaded,
+    @required this.fontSize,
+    @required this.rite,
+    @required this.theme,
+    @required this.firstTime,
+    @required this.loaded,
   });
 
   SettingsRepositoryValue rebuildWith({
-    num? fontSize,
-    Rite? rite,
-    ThemeSetting? theme,
-    bool? firstTime,
-    bool? loaded,
+    num fontSize,
+    Rite rite,
+    ThemeSetting theme,
+    bool firstTime,
+    bool loaded,
   }) =>
       SettingsRepositoryValue(
         fontSize: fontSize ?? this.fontSize,

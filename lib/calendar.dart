@@ -10,7 +10,7 @@ class Calendar extends StatefulWidget {
   /// Creates a Calendar widget
   /// A [controller] can be provided to modify the selected date and an
   /// [onSelect] function can be used to listen to day selection
-  Calendar({Key? key, CalendarController? controller})
+  Calendar({Key key, CalendarController controller})
       : this.controller = controller != null
             ? controller
             : CalendarController(day: Day.now()),
@@ -121,10 +121,10 @@ class _CalendarState extends State<Calendar> {
   // - it belongs to the previous or next month
 
   Widget _buildDay({
-    required Day day,
-    required Month month,
-    required Day selected,
-    void Function()? onSelect,
+    @required Day day,
+    @required Month month,
+    @required Day selected,
+    void Function() onSelect,
   }) {
     final isSameDay = day.isSameDay(selected);
 
@@ -172,7 +172,7 @@ class _CalendarState extends State<Calendar> {
 
 /// A simple controller for the date of
 class CalendarController extends ValueNotifier<CalendarControllerValue> {
-  CalendarController({required Day day})
+  CalendarController({@required Day day})
       : super(CalendarControllerValue(day: day));
 
   CalendarController.fromValue(CalendarControllerValue value) : super(value);
@@ -186,5 +186,5 @@ class CalendarController extends ValueNotifier<CalendarControllerValue> {
 class CalendarControllerValue {
   final Day day;
 
-  CalendarControllerValue({required this.day});
+  CalendarControllerValue({@required this.day});
 }

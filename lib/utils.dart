@@ -34,7 +34,7 @@ extension ColorToMaterialColor on Color {
 
 extension Saturation on num {
   /// Saturates the number between given [lower] and [upper] bounds, if provided.
-  num sat({num? lower, num? upper}) {
+  num sat({num lower, num upper}) {
     return min(upper ?? double.infinity, max(lower ?? -double.infinity, this));
   }
 }

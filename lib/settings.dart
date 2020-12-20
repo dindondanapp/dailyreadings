@@ -7,7 +7,7 @@ import 'settings_repository.dart';
 class Settings extends StatelessWidget {
   final SettingsRepository controller;
 
-  const Settings({Key? key, required this.controller}) : super(key: key);
+  const Settings({Key key, @required this.controller}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +71,10 @@ class RadioSelector<T> extends StatelessWidget {
   final Map<T, Widget> valueIcons;
 
   const RadioSelector({
-    Key? key,
-    required this.onSelect,
-    required this.selected,
-    required this.valueIcons,
+    Key key,
+    @required this.onSelect,
+    @required this.selected,
+    @required this.valueIcons,
   }) : super(key: key);
 
   @override

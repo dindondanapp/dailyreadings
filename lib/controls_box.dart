@@ -12,14 +12,14 @@ class ControlsBox extends StatelessWidget {
   final ControlsState state;
 
   num get _controlsBoxOpacity => state.boxOpen ? 1 : 0;
-  num? get _controlsBoxHeight => state.boxOpen ? null : 0;
+  num get _controlsBoxHeight => state.boxOpen ? null : 0;
 
   const ControlsBox(
-      {Key? key,
-      required this.onChangeDay,
-      required this.calendarController,
-      required this.state,
-      required this.settingsRepository})
+      {Key key,
+      @required this.onChangeDay,
+      @required this.calendarController,
+      @required this.state,
+      @required this.settingsRepository})
       : super(key: key);
 
   @override
@@ -31,7 +31,7 @@ class ControlsBox extends StatelessWidget {
         duration: Duration(seconds: 1),
         curve: Curves.fastOutSlowIn,
         height:
-            _controlsBoxHeight != null ? _controlsBoxHeight!.toDouble() : 400,
+            _controlsBoxHeight != null ? _controlsBoxHeight.toDouble() : 400,
         child: SafeArea(
           child: ClipRect(
             child: Container(
@@ -62,9 +62,9 @@ class ControlsState {
   final ControlsBoxSelection selection;
   final bool boxOpen;
 
-  ControlsState({required this.selection, required this.boxOpen});
+  ControlsState({@required this.selection, @required this.boxOpen});
 
-  ControlsState rebuildWith({ControlsBoxSelection? selection, bool? boxOpen}) {
+  ControlsState rebuildWith({ControlsBoxSelection selection, bool boxOpen}) {
     return ControlsState(
       boxOpen: boxOpen ?? this.boxOpen,
       selection: selection ?? this.selection,

@@ -5,17 +5,17 @@ import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 import 'utils.dart';
 
 class ControlsBar extends StatelessWidget {
-  final DateTime? date;
+  final DateTime date;
   final Function() calendarTapCallback;
   final Function() settingsTapCallback;
   final ControlsState state;
   // TODO: use a controller.
   const ControlsBar(
-      {Key? key,
-      required this.date,
-      required this.calendarTapCallback,
-      required this.settingsTapCallback,
-      required this.state})
+      {Key key,
+      @required this.date,
+      @required this.calendarTapCallback,
+      @required this.settingsTapCallback,
+      @required this.state})
       : super(key: key);
 
   @override

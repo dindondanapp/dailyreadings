@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dailyreadings/calendar.dart';
 import 'package:dailyreadings/settings_repository.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +24,7 @@ class Home extends StatefulWidget {
     primarySwatch: dinDonDanBlue.toMaterialColor(),
   );
 
-  Home({Key? key}) : super(key: key);
+  Home({Key key}) : super(key: key);
   @override
   _HomeState createState() => _HomeState();
 }
@@ -32,7 +34,7 @@ class _HomeState extends State<Home> {
   final SettingsRepository settings = SettingsRepository();
 
   // A repository to access a remote reading. Will be initialized in initState.
-  ReadingsRepository? repository;
+  ReadingsRepository repository;
 
   // Controller to handle and manage the scrollview state
   ScrollController scrollController = ScrollController();
@@ -88,7 +90,7 @@ class _HomeState extends State<Home> {
     });
 
     settings.addListener(() {
-      if (repository == null || settings.rite != repository!.id.rite) {
+      if (repository == null || settings.rite != repository.id.rite) {
         setState(() {
           repository = ReadingsRepository(ReadingsDataIdentifier(
               day: calendarController.day, rite: settings.rite));
@@ -178,47 +180,47 @@ class _HomeState extends State<Home> {
                 });
               }
             },
-            child: ListView(
+            child: SingleChildScrollView(
               controller: scrollController,
               physics: !_controlsState.boxOpen
                   ? ClampingScrollPhysics()
                   : NeverScrollableScrollPhysics(),
               padding: EdgeInsets.only(
-                left: 10,
-                right: 10,
+                left: max(MediaQuery.of(context).padding.left, 30),
+                right: max(MediaQuery.of(context).padding.right, 30),
                 bottom: MediaQuery.of(context).padding.bottom,
                 top: MediaQuery.of(context).padding.top + 20,
               ),
-              children: [
-                StreamBuilder<ReadingsSnapshot>(
-                  stream: repository!.readingsStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError ||
-                        snapshot.data == null ||
-                        snapshot.data!.badFormat) {
-                      print(snapshot.error);
-                      return Text(
-                          'Something went wrong'); // TODO: Handle appropriately
-                    }
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 400),
+                  child: StreamBuilder<ReadingsSnapshot>(
+                    stream: repository.readingsStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError ||
+                          snapshot.data == null ||
+                          snapshot.data.badFormat) {
+                        print(snapshot.error);
+                        return Text(
+                            'Something went wrong'); // TODO: Handle appropriately
+                      }
 
-                    return AnimatedOpacity(
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                      opacity:
-                          snapshot.connectionState == ConnectionState.waiting
-                              ? 0.5
-                              : 1,
-                      child: snapshot.data!.exists
-                          ? ReadingsDisplay(data: snapshot.data!.data!)
-                          : Text(
-                              "Le letture per questo giorno non sono disponibili."),
-                    );
-                  },
+                      return AnimatedOpacity(
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        opacity:
+                            snapshot.connectionState == ConnectionState.waiting
+                                ? 0.5
+                                : 1,
+                        child: snapshot.data.exists
+                            ? ReadingsDisplay(data: snapshot.data.data)
+                            : Text(
+                                "Le letture per questo giorno non sono disponibili."),
+                      );
+                    },
+                  ),
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).padding.bottom,
-                ),
-              ],
+              ),
             ),
           ),
           ...!_controlsState.boxOpen ? [StatusBarBlendCover()] : [],

@@ -1,20 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dailyreadings/common/enums.dart';
 import 'package:date_util/date_util.dart';
 import 'package:flutter/material.dart';
 
-import 'utils.dart';
+import '../common/extensions.dart';
 
 /// A widget that displays a calendar and allows to select a day
 class Calendar extends StatefulWidget {
-  final CalendarController controller;
+  final Day selectedDay;
+  final void Function(Day day) onSelect;
 
   /// Creates a Calendar widget
-  /// A [controller] can be provided to modify the selected date and an
-  /// [onSelect] function can be used to listen to day selection
-  Calendar({Key key, CalendarController controller})
-      : this.controller = controller != null
-            ? controller
-            : CalendarController(day: Day.now()),
-        super(key: key);
+  /// A selected [day] must be provided and an [onSelect] function can be used
+  /// to listen to day selection
+  Calendar({Key key, @required this.selectedDay, @required this.onSelect})
+      : super(key: key);
 
   @override
   _CalendarState createState() => _CalendarState();
@@ -31,23 +31,47 @@ class _CalendarState extends State<Calendar> {
   // The current month is used as the initial page
   final initialPageMonth = Month.now();
 
+  // A stream of metadata from the backend
+  final Stream<Map<Rite, DayInterval>> metaStream = FirebaseFirestore.instance
+      .collection('meta')
+      .doc('calendar')
+      .snapshots()
+      .map((event) {
+        return Map.fromEntries(
+          Rite.values.map((rite) {
+            try {
+              final riteMeta =
+                  event.get(rite.enumSerialize()) as Map<String, dynamic>;
+              final start =
+                  Day.fromDateTime((riteMeta['start'] as Timestamp).toDate());
+              final end =
+                  Day.fromDateTime((riteMeta['end'] as Timestamp).toDate());
+
+              return MapEntry<Rite, DayInterval>(
+                rite,
+                DayInterval(
+                  start: start,
+                  end: end,
+                ),
+              );
+            } catch (e) {}
+
+            return MapEntry(rite, DayInterval());
+          }),
+        );
+      })
+      .where((event) => event != null)
+      .distinct();
+
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: widget.controller,
-        builder: (context, CalendarControllerValue value, _) =>
-            _buildCalendar(value.day));
-  }
-
-  // Build a calendar widget, that consists of a [PageView] with a page for each month
-  Widget _buildCalendar(Day selected) {
     return PageView.builder(
       controller: pageController,
       itemBuilder: (BuildContext context, index) {
         final monthOffset = index - initialPage;
         return _buildMonthPage(
             Month(initialPageMonth.year, initialPageMonth.month + monthOffset),
-            selected);
+            widget.selectedDay);
       },
     );
   }
@@ -81,7 +105,7 @@ class _CalendarState extends State<Calendar> {
               day: day,
               month: month,
               selected: selected,
-              onSelect: () => widget.controller.day = day);
+              onSelect: () => widget.onSelect(day));
         }),
       ),
     );
@@ -168,23 +192,4 @@ class _CalendarState extends State<Calendar> {
       );
     }
   }
-}
-
-/// A simple controller for the date of
-class CalendarController extends ValueNotifier<CalendarControllerValue> {
-  CalendarController({@required Day day})
-      : super(CalendarControllerValue(day: day));
-
-  CalendarController.fromValue(CalendarControllerValue value) : super(value);
-
-  get day => value.day;
-  set day(day) {
-    value = CalendarControllerValue(day: day);
-  }
-}
-
-class CalendarControllerValue {
-  final Day day;
-
-  CalendarControllerValue({@required this.day});
 }

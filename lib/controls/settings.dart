@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
-import 'readings_repository.dart';
-import 'settings_repository.dart';
+import '../common/dailyreadings_preferences.dart';
+import '../common/enums.dart';
 
 class Settings extends StatelessWidget {
-  final SettingsRepository controller;
-
-  const Settings({Key key, @required this.controller}) : super(key: key);
+  const Settings({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +21,9 @@ class Settings extends StatelessWidget {
             TableRow(children: [
               Text('Tema'),
               RadioSelector<ThemeSetting>(
-                selected: controller.theme,
-                onSelect: (value) => controller.theme = value,
+                selected: DailyReadingsPreferences.of(context).theme,
+                onSelect: (value) =>
+                    DailyReadingsPreferences.of(context).theme = value,
                 valueIcons: {
                   ThemeSetting.system: Icon(SFSymbols.gear),
                   ThemeSetting.dark: Icon(SFSymbols.moon),
@@ -35,8 +34,9 @@ class Settings extends StatelessWidget {
             TableRow(children: [
               Text('Rito'),
               RadioSelector<Rite>(
-                selected: controller.rite,
-                onSelect: (value) => controller.rite = value,
+                selected: DailyReadingsPreferences.of(context).rite,
+                onSelect: (value) =>
+                    DailyReadingsPreferences.of(context).rite = value,
                 valueIcons: {
                   Rite.roman: Text('Romano'),
                   Rite.ambrosian: Text('Ambrosiano'),
@@ -49,11 +49,14 @@ class Settings extends StatelessWidget {
                 children: [
                   IconButton(
                       icon: Icon(SFSymbols.minus),
-                      onPressed: () => controller.fontSize--),
-                  Text(controller.fontSize.toString()),
+                      onPressed: () =>
+                          DailyReadingsPreferences.of(context).fontSize--),
+                  Text(
+                      DailyReadingsPreferences.of(context).fontSize.toString()),
                   IconButton(
                       icon: Icon(SFSymbols.plus),
-                      onPressed: () => controller.fontSize++),
+                      onPressed: () =>
+                          DailyReadingsPreferences.of(context).fontSize++),
                 ],
               ),
             ]),

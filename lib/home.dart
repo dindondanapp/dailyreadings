@@ -1,27 +1,25 @@
 import 'dart:math';
 
-import 'package:dailyreadings/calendar.dart';
-import 'package:dailyreadings/settings_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'controls_bar.dart';
-import 'controls_box.dart';
-import 'readings_display.dart';
+import 'common/dailyreadings_preferences.dart';
+import 'common/extensions.dart';
+import 'common/palette.dart';
+import 'controls/controls_bar.dart';
+import 'controls/controls_box.dart';
+import 'reader/readings_display.dart';
 import 'readings_repository.dart';
-import 'utils.dart';
 
 /// Main widget, that contains all the dynamic content of the app
 class Home extends StatefulWidget {
-  // TODO: Move somewhere else
-  static final dinDonDanBlue = Color(0xFF6E95CB);
   final ThemeData lightTheme = ThemeData(
-    primarySwatch: dinDonDanBlue.toMaterialColor(),
+    primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
   );
 
   final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
-    primarySwatch: dinDonDanBlue.toMaterialColor(),
+    primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
   );
 
   Home({Key key}) : super(key: key);
@@ -30,82 +28,71 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  // A repository for the settings stored in local preferences
-  final SettingsRepository settings = SettingsRepository();
+  static final double controlsBoxSize = 400;
 
   // A repository to access a remote reading. Will be initialized in initState.
   ReadingsRepository repository;
 
   // Controller to handle and manage the scrollview state
-  ScrollController scrollController = ScrollController();
-
-  // TODO: move in a dedicated controller
-  num _controlsBarOpacity = 1;
-
-  final CalendarController calendarController =
-      CalendarController(day: Day.now());
-
-  ControlsState __controlsState = ControlsState(
-    boxOpen: false,
-    selection: ControlsBoxSelection.calendar,
-  );
-
-  ControlsState get _controlsState => __controlsState;
-
-  set _controlsState(ControlsState value) {
-    scrollController.animateTo(
-      0,
-      duration: Duration(seconds: 1),
-      curve: Curves.easeOut,
-    );
-
-    __controlsState = value;
-  }
+  ScrollController scrollController =
+      ScrollController(initialScrollOffset: controlsBoxSize);
+  ControlsBoxController _controlsState = ControlsBoxController();
 
   @override
   void initState() {
-    repository = repository = ReadingsRepository(
-      ReadingsDataIdentifier(
-        day: Day.now(),
-        rite: settings.rite,
-      ),
-    );
+    super.initState();
 
     // Change controls opacity to only show them when the page is scrolled up
     scrollController.addListener(() {
-      final offsetStart = 30;
-      final offsetEnd = 40;
+      final offsetStart = controlsBoxSize + 30;
+      final offsetEnd = controlsBoxSize + 40;
 
       if (scrollController.offset < offsetStart) {
-        setState(() {
-          _controlsBarOpacity = 1;
-        });
+        _controlsState.barVisible = true;
       }
 
       if (scrollController.offset > offsetEnd) {
-        setState(() {
-          _controlsBarOpacity = 0;
-        });
+        _controlsState.barVisible = false;
       }
     });
 
-    settings.addListener(() {
-      if (repository == null || settings.rite != repository.id.rite) {
+    // Listen to calendar selection
+    _controlsState.addListener(() {
+      if (_controlsState.day != repository.id.day) {
         setState(() {
-          repository = ReadingsRepository(ReadingsDataIdentifier(
-              day: calendarController.day, rite: settings.rite));
+          repository = ReadingsRepository(
+            ReadingsDataIdentifier(
+              day: _controlsState.day,
+              rite: DailyReadingsPreferences.of(context).rite,
+            ),
+            DailyReadingsPreferences.of(context).rite,
+          );
         });
       }
     });
+  }
 
-    calendarController.addListener(() {
-      setState(() {
-        repository = ReadingsRepository(ReadingsDataIdentifier(
-            day: calendarController.day, rite: settings.rite));
-      });
-    });
+  @override
+  void didChangeDependencies() {
+    repository = ReadingsRepository(
+      ReadingsDataIdentifier(
+        day: _controlsState.day,
+        rite: DailyReadingsPreferences.of(context).rite,
+      ),
+      DailyReadingsPreferences.of(context).rite,
+    );
 
-    super.initState();
+    super.didChangeDependencies();
+  }
+
+  Brightness get brightness {
+    final theme = DailyReadingsPreferences.of(context).theme;
+
+    if (theme == ThemeSetting.system) {
+      return MediaQuery.of(context).platformBrightness;
+    } else {
+      return theme == ThemeSetting.dark ? Brightness.dark : Brightness.light;
+    }
   }
 
   @override
@@ -113,56 +100,38 @@ class _HomeState extends State<Home> {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    return ValueListenableBuilder<SettingsRepositoryValue>(
-      valueListenable: settings,
-      builder: (context, value, child) {
-        final Brightness brightness = settings.theme == ThemeSetting.system
-            ? MediaQuery.of(context).platformBrightness
-            : settings.theme == ThemeSetting.dark
-                ? Brightness.dark
-                : Brightness.light;
-
-        return Theme(
-          data: brightness == Brightness.dark
-              ? widget.darkTheme
-              : widget.lightTheme,
-          child: Scaffold(
-            body: Stack(
+    return Theme(
+      data:
+          brightness == Brightness.dark ? widget.darkTheme : widget.lightTheme,
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ControlsBox(
-                      calendarController: calendarController,
-                      state: _controlsState,
-                      settingsRepository: settings,
-                      onChangeDay: (day) {
-                        calendarController.day = day;
-                      },
-                    ),
-                    DefaultTextStyle(
-                      style: TextStyle(
-                          fontSize: settings.fontSize.toDouble(),
-                          color: Colors.black),
-                      child: _buildReader(),
-                    ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: Container()),
-                      _buildControlsBar(),
-                    ],
-                  ),
+                DefaultTextStyle(
+                  style: TextStyle(
+                      fontSize: DailyReadingsPreferences.of(context)
+                          .fontSize
+                          .toDouble(),
+                      color: Colors.black),
+                  child: _buildReader(),
                 ),
               ],
             ),
-          ),
-        );
-      },
+            Align(
+              alignment: Alignment.topCenter,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: Container()),
+                  _buildControlsBar(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -172,26 +141,18 @@ class _HomeState extends State<Home> {
     return Expanded(
       child: Stack(
         children: [
-          GestureDetector(
-            onTap: () {
-              if (_controlsState.boxOpen) {
-                setState(() {
-                  _controlsState = _controlsState.rebuildWith(boxOpen: false);
-                });
-              }
-            },
-            child: SingleChildScrollView(
-              controller: scrollController,
-              physics: !_controlsState.boxOpen
-                  ? ClampingScrollPhysics()
-                  : NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.only(
-                left: max(MediaQuery.of(context).padding.left, 30),
-                right: max(MediaQuery.of(context).padding.right, 30),
-                bottom: MediaQuery.of(context).padding.bottom,
-                top: MediaQuery.of(context).padding.top + 20,
-              ),
-              child: Center(
+          ListView(
+            physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
+            controller: scrollController,
+            padding: EdgeInsets.only(
+              left: max(MediaQuery.of(context).padding.left, 30),
+              right: max(MediaQuery.of(context).padding.right, 30),
+              bottom: MediaQuery.of(context).padding.bottom,
+              top: MediaQuery.of(context).padding.top + 20,
+            ),
+            children: [
+              ControlsBox(controller: _controlsState),
+              Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: 400),
                   child: StreamBuilder<ReadingsSnapshot>(
@@ -221,7 +182,7 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ),
-            ),
+            ],
           ),
           ...!_controlsState.boxOpen ? [StatusBarBlendCover()] : [],
         ],
@@ -232,33 +193,17 @@ class _HomeState extends State<Home> {
   Widget _buildControlsBar() {
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10),
-      child: AnimatedOpacity(
-        opacity: (!_controlsState.boxOpen ? _controlsBarOpacity.toDouble() : 1),
-        duration: Duration(milliseconds: 200),
-        child: ControlsBar(
-          date: calendarController.day,
-          calendarTapCallback: () => setState(() {
-            if (_controlsState.selection == ControlsBoxSelection.calendar &&
-                _controlsState.boxOpen) {
-              _controlsState = _controlsState.rebuildWith(boxOpen: false);
-            } else {
-              _controlsState = _controlsState.rebuildWith(
-                  boxOpen: true, selection: ControlsBoxSelection.calendar);
-            }
-          }),
-          settingsTapCallback: () => setState(() {
-            if (_controlsState.selection == ControlsBoxSelection.settings &&
-                _controlsState.boxOpen) {
-              _controlsState = _controlsState.rebuildWith(boxOpen: false);
-            } else {
-              _controlsState = _controlsState.rebuildWith(
-                  boxOpen: true, selection: ControlsBoxSelection.settings);
-            }
-          }),
-          state: _controlsState,
-        ),
+      child: ControlsBar(
+        date: _controlsState.day,
+        controller: _controlsState,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controlsState.dispose();
+    super.dispose();
   }
 }
 
@@ -295,4 +240,36 @@ class StatusBarBlendCover extends StatelessWidget {
       ),
     );
   }
+}
+
+class HomeScrollPhysics extends ScrollPhysics {
+  final double controlsBoxSize;
+  const HomeScrollPhysics(
+      {@required this.controlsBoxSize, ScrollPhysics parent})
+      : super(parent: parent);
+
+  @override
+  HomeScrollPhysics applyTo(ScrollPhysics ancestor) {
+    return HomeScrollPhysics(
+        controlsBoxSize: controlsBoxSize, parent: buildParent(ancestor));
+  }
+
+  @override
+  Simulation createBallisticSimulation(
+      ScrollMetrics position, double velocity) {
+    if (position.pixels > 0 && position.pixels < controlsBoxSize / 2) {
+      return ScrollSpringSimulation(spring, position.pixels, 0, velocity,
+          tolerance: tolerance);
+    } else if (position.pixels >= controlsBoxSize / 2 &&
+        position.pixels < controlsBoxSize) {
+      return ScrollSpringSimulation(
+          spring, position.pixels, controlsBoxSize, velocity,
+          tolerance: tolerance);
+    } else {
+      return super.createBallisticSimulation(position, velocity);
+    }
+  }
+
+  @override
+  bool get allowImplicitScrolling => false;
 }

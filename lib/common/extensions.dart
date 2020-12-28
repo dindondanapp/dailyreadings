@@ -153,6 +153,17 @@ class Day extends DateTime {
   }
 }
 
+class DayInterval {
+  final Day start;
+  final Day end;
+
+  DayInterval({this.start, this.end}) {
+    if (this.start.isAfter(this.end)) {
+      throw Exception('The end day cannot precede the start day.');
+    }
+  }
+}
+
 extension EnumSerialization on Object {
   String enumSerialize() => this.toString().split('.').last;
 }

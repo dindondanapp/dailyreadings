@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'readings_repository.dart';
-import 'utils.dart';
+import '../common/enums.dart';
+import '../common/extensions.dart';
 
 class ReadingsDisplay extends StatelessWidget {
   final ReadingsData data;

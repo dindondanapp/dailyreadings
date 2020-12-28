@@ -3,16 +3,21 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-import 'utils.dart';
+import 'common/enums.dart';
+import 'common/extensions.dart';
 
 class ReadingsRepository {
   final ReadingsDataIdentifier id;
+  final Rite rite;
 
   /// Creates an object that handles data sourcing from Firebase Cloud Firestore, for the given [ReadingsDataIdentifier]
-  ReadingsRepository(this.id) : readingsStream = getReadingsStream(id);
+  ReadingsRepository(this.id, this.rite)
+      : readingsStream = getReadingsStream(id),
+        calendarInterval = getCalendarIntervalStream(rite);
 
   /// A stream of [ReadingsData] objects
   final Stream<ReadingsSnapshot> readingsStream;
+  final Stream<DayInterval> calendarInterval;
 
   /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [day]
   static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
@@ -30,6 +35,24 @@ class ReadingsRepository {
   }
 }
 
+getCalendarIntervalStream(Rite rite) {
+  return FirebaseFirestore.instance
+      .collection('meta')
+      .doc('calendar')
+      .snapshots()
+      .map<DayInterval>((event) {
+    try {
+      final Map<String, Timestamp> intervalMap =
+          event.get('availableIntervals')[rite.enumSerialize()];
+      return DayInterval(
+          start: intervalMap['start'].toDate(),
+          end: intervalMap['end'].toDate());
+    } catch (e) {
+      return DayInterval();
+    }
+  });
+}
+
 class ReadingsDataIdentifier {
   final Day day;
   final Rite rite;
@@ -39,7 +62,7 @@ class ReadingsDataIdentifier {
 
   /// Returns a serialized identifier in a standard format consistent with the remote repository
   String serialize() {
-    return '${this.day.toLocal().year}-${this.day.toLocal().month}-${this.day.toLocal().day}-${this.rite.enumSerialize()}';
+    return '${this.day.toLocal().year}-${this.day.toLocal().month.toString().padLeft(2, '0')}-${this.day.toLocal().day.toString().padLeft(2, '0')}-${this.rite.enumSerialize()}';
   }
 
   @override
@@ -152,114 +175,3 @@ class ReadingsSnapshot {
     }
   }
 }
-
-class ReadingsData {
-  final String title;
-  final Rite rite;
-  final Uri source;
-  final DateTime date;
-  final List<Section> sections;
-
-  /// Creates a set of readings given its structured contents
-  ReadingsData({
-    @required this.sections,
-    @required this.title,
-    @required this.rite,
-    @required this.source,
-    @required this.date,
-  });
-}
-
-class Section {
-  final SectionType name;
-  final List<SectionAlternative> alternatives;
-
-  Section({@required this.name, @required this.alternatives});
-}
-
-class SectionAlternative {
-  final List<Block> blocks;
-
-  SectionAlternative({@required this.blocks});
-}
-
-class Block {
-  final BlockType type;
-  final String content;
-
-  Block({@required this.type, @required this.content});
-}
-
-enum BlockType {
-  Heading, // Heading of a section (sometimes there may be multiple headings)
-  Subheading,
-  Emphasis,
-  Reference, // Reference to scriptures
-  Text, // Normal text
-  Verse, // A verse in a poetry-stile text
-  Space // Just an empty line
-}
-
-enum SectionType {
-  rAntiphonaAdIntroitum,
-  rIncensatioAltaris,
-  rSalutatio,
-  rAspersio,
-  rActusPaenitentialis,
-  rKyrieGloria,
-  rCollecta,
-  rLectioPrima,
-  rPsalmus,
-  rLectioSecunda,
-  rAlleluia,
-  rEvangelium,
-  rHomilia,
-  rCredo,
-  rOratioFidelium,
-  rAntiphonaAdOffertorium,
-  rIncensatio,
-  rLavabo,
-  rOratioSuperOblata,
-  rPraefatio,
-  rSactus,
-  rCanonRomanus,
-  rPaterNoster,
-  rAgnusDei,
-  rAntiphonaAdCommunionem,
-  rAmmunioFidelium,
-  rPostcommunio,
-  rBenedictioEtDimissio,
-  rGratiaActioPostMissam,
-  aAntiphonaAdIntroitum,
-  aIncensatioAltaris,
-  aSalutatio,
-  aAspersio,
-  aActusPaenitentialis,
-  aKyrieGloria,
-  aOratio,
-  aLectio,
-  aPsalmus,
-  aEpistula,
-  aAlleluia,
-  aEvangelium,
-  aPostEvangelium,
-  aHomilia,
-  aCredo,
-  aOratioFidelium,
-  aAntiphonaAdOffertorium,
-  aIncensatio,
-  aLavabo,
-  aOratioSuperOblata,
-  aPraefatio,
-  aSactus,
-  aCanonRomanus,
-  aPaterNoster,
-  aAgnusDei,
-  aAntiphonaAdCommunionem,
-  aAmmunioFidelium,
-  aPostcommunio,
-  aBenedictioEtDimissio,
-  aGratiaActioPostMissam,
-}
-
-enum Rite { ambrosian, roman }

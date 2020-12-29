@@ -27,30 +27,34 @@ class ReadingsRepository {
         .snapshots()
         .map<ReadingsSnapshot>((snapshot) {
       if (snapshot.exists) {
-        return ReadingsSnapshot.fromFirebase(snapshot.data());
+        return ReadingsSnapshot.fromFirebase(id, snapshot.data());
       } else {
-        return ReadingsSnapshot.nonExistent();
+        if (snapshot.metadata.isFromCache) {
+          return ReadingsSnapshot.notDownloaded(id);
+        } else {
+          return ReadingsSnapshot.nonExistent(id);
+        }
       }
     }).asBroadcastStream();
   }
-}
 
-getCalendarIntervalStream(Rite rite) {
-  return FirebaseFirestore.instance
-      .collection('meta')
-      .doc('calendar')
-      .snapshots()
-      .map<DayInterval>((event) {
-    try {
-      final Map<String, Timestamp> intervalMap =
-          event.get('availableIntervals')[rite.enumSerialize()];
-      return DayInterval(
-          start: intervalMap['start'].toDate(),
-          end: intervalMap['end'].toDate());
-    } catch (e) {
-      return DayInterval();
-    }
-  });
+  static Stream<DayInterval> getCalendarIntervalStream(Rite rite) {
+    return FirebaseFirestore.instance
+        .collection('meta')
+        .doc('calendar')
+        .snapshots()
+        .map<DayInterval>((event) {
+      try {
+        final Map<String, Timestamp> intervalMap =
+            event.get('availableIntervals')[rite.enumSerialize()];
+        return DayInterval(
+            start: intervalMap['start'].toDate(),
+            end: intervalMap['end'].toDate());
+      } catch (e) {
+        return DayInterval();
+      }
+    });
+  }
 }
 
 class ReadingsDataIdentifier {
@@ -76,17 +80,26 @@ class ReadingsDataIdentifier {
 }
 
 class ReadingsSnapshot {
+  final ReadingsDataIdentifier requestedId;
   final ReadingsData data;
   final bool exists;
   final bool badFormat;
+  final bool waitingForDownload;
 
-  ReadingsSnapshot.nonExistent()
+  ReadingsSnapshot.notDownloaded(this.requestedId)
       : data = null,
         exists = false,
-        badFormat = false;
+        badFormat = false,
+        waitingForDownload = true;
+
+  ReadingsSnapshot.nonExistent(this.requestedId)
+      : data = null,
+        exists = false,
+        badFormat = false,
+        waitingForDownload = false;
 
   /// Creates a structured set of readings from a suitably formatted Cloud Firestore map
-  ReadingsSnapshot.fromFirebase(Map<String, dynamic> document)
+  ReadingsSnapshot.fromFirebase(this.requestedId, Map<String, dynamic> document)
       : data = ReadingsData(
           title: document["title"],
           rite: parseRite(document["rite"]),
@@ -95,7 +108,8 @@ class ReadingsSnapshot {
           sections: parseSections(document["sections"]),
         ),
         exists = true,
-        badFormat = false;
+        badFormat = false,
+        waitingForDownload = false;
 
   /// Returns a parsed rite from its serialized representation
   static Rite parseRite(String string) {

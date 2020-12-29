@@ -21,59 +21,73 @@ class ControlsBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: controller,
-      builder: (context, value, widget) => Material(
-        borderRadius: BorderRadius.circular(7),
-        clipBehavior: Clip.antiAlias,
-        color: Colors.grey[300],
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            InkWell(
-              // TODO: inherit colors
+      builder: (context, value, widget) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildButton(
+            context: context,
+            icon: SFSymbols.calendar,
+            label: (date ?? DateTime.now()).toLocaleDateString(),
+            selected: controller.boxOpen == BoxOpenState.open &&
+                controller.selection == ControlsBoxSelection.calendar,
+            onTap: onCalendarTap,
+          ),
+          _buildButton(
+            context: context,
+            icon: SFSymbols.gear,
+            onTap: onSettingsTap,
+            selected: controller.boxOpen == BoxOpenState.open &&
+                controller.selection == ControlsBoxSelection.settings,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton(
+      {@required BuildContext context,
+      IconData icon,
+      String label,
+      @required void Function() onTap,
+      bool selected = false}) {
+    final selectedBackground =
+        Theme.of(context).primaryColor.toMaterialColor()[200];
+    final background =
+        selected ? selectedBackground : selectedBackground.withAlpha(0);
+    return Container(
+      margin: EdgeInsets.all(5),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(5),
+        child: AnimatedContainer(
+          curve: Curves.easeInOut,
+          duration: Duration(milliseconds: 200),
+          color: background,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: onTap,
               child: Container(
-                padding: EdgeInsets.all(7),
+                padding: EdgeInsets.all(10),
                 child: Row(
                   children: [
-                    Icon(SFSymbols.calendar,
-                        color: controller.boxOpen &&
-                                controller.selection ==
-                                    ControlsBoxSelection.calendar
-                            ? Colors.black
-                            : Colors.grey),
-                    SizedBox(width: 10),
-                    Text(
-                      (date ?? DateTime.now()).toLocaleDateString(),
-                      style: TextStyle(
-                          color: controller.boxOpen &&
-                                  controller.selection ==
-                                      ControlsBoxSelection.calendar
-                              ? Colors.black
-                              : Colors.grey),
-                    ),
+                    icon != null ? Icon(icon) : Container(),
+                    icon != null && label != null
+                        ? SizedBox(width: 10)
+                        : Container(),
+                    label != null
+                        ? Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 14,
+                            ),
+                          )
+                        : Container(),
                   ],
                 ),
               ),
-              onTap: onCalendarTap,
             ),
-            DecoratedBox(
-              child: SizedBox(width: 1, height: 20),
-              decoration: BoxDecoration(color: Colors.grey),
-            ),
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.all(7),
-                child: Icon(SFSymbols.gear,
-                    color: controller.boxOpen &&
-                            controller.selection ==
-                                ControlsBoxSelection.settings
-                        ? Colors.black
-                        : Colors.grey),
-              ),
-              onTap: onSettingsTap,
-            )
-          ],
+          ),
         ),
       ),
     );

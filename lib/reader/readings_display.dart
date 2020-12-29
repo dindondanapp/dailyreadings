@@ -2,7 +2,6 @@ import 'package:drop_cap_text/drop_cap_text.dart';
 import 'package:flutter/material.dart';
 
 import '../common/enums.dart';
-import '../common/extensions.dart';
 
 class ReadingsDisplay extends StatelessWidget {
   final ReadingsData data;
@@ -15,24 +14,20 @@ class ReadingsDisplay extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Container(
+          padding: EdgeInsets.only(
+              bottom: DefaultTextStyle.of(context).style.fontSize),
           decoration: BoxDecoration(
             border: Border(
-              left: BorderSide(color: Theme.of(context).primaryColor, width: 3),
+              bottom:
+                  BorderSide(color: Theme.of(context).primaryColor, width: 1),
             ),
           ),
-          padding: EdgeInsets.only(right: 200, left: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                data.date.toLocaleWeekday().toUpperCase(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
-              Text(
                 data.title,
+                style: TextStyle(color: Theme.of(context).primaryColor),
               ),
             ],
           ),
@@ -113,12 +108,13 @@ class BlockWidget extends StatelessWidget {
         ),
       );
     } else {
-      if (dropCap) {
+      if (dropCap && block.dropCapCompatible) {
         return DropCapText(
           block.content.substring(1),
           style: TextStyle(
             fontFamily: 'Charter',
             height: 1.5,
+            fontSize: DefaultTextStyle.of(context).style.fontSize,
           ),
           dropCap: CustomDropCap(
             block.content.substring(0, 1),
@@ -126,7 +122,7 @@ class BlockWidget extends StatelessWidget {
               fontSize: DefaultTextStyle.of(context).style.fontSize,
               height: 1.5,
             ),
-            linesNumber: 4,
+            linesNumber: 3,
           ),
           textAlign: TextAlign.justify,
         );
@@ -178,7 +174,7 @@ class CustomDropCap extends DropCap {
 
   static double getFontSize(String letter, TextStyle style, int linesNumber) {
     final height = getHeight(letter, style, linesNumber);
-    return height * (letter == 'Q' ? 1 : 1.25);
+    return height * (letter == 'Q' ? 1 : 1.2);
   }
 
   @override
@@ -191,13 +187,13 @@ class CustomDropCap extends DropCap {
         maxHeight: double.infinity,
         child: Container(
           transform: Matrix4.translationValues(
-              0.0, fontSize * (letter == 'Q' ? -0.05 : 0.05), 0.0),
+              0.0, fontSize * (letter == 'Q' ? 0 : 0.06), 0.0),
           child: Text(
             letter,
             style: TextStyle(
               height: 1,
               fontSize: fontSize,
-              color: Theme.of(context).primaryColor,
+              color: Colors.grey[500],
               fontFamily: 'Charter',
             ),
           ),

@@ -28,8 +28,12 @@ class DailyReadingsPreferences extends LocalPreferences {
   }
 
   /// Global font size for the reader screen
-  double get fontSize => get('font_size');
-  set fontSize(double value) => set('font_size', value);
+  static const minFontSize = 10.0;
+  static const maxFontSize = 24.0;
+  double get fontSize =>
+      (get('font_size') as num).sat(lower: minFontSize, upper: maxFontSize);
+  set fontSize(double value) =>
+      set('font_size', value.sat(lower: minFontSize, upper: maxFontSize));
 
   /// Rite
   Rite get rite => get('rite') == "roman" ? Rite.roman : Rite.ambrosian;

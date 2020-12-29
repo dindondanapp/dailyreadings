@@ -15,12 +15,16 @@ class Settings extends StatelessWidget {
       maxWidth: double.infinity,
       maxHeight: double.infinity,
       child: SizedBox(
-        width: 300,
-        child: Table(
+        width: 340,
+        height: 240,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
           children: [
-            TableRow(children: [
-              Text('Tema'),
-              RadioSelector<ThemeSetting>(
+            _buildSettingsRow(
+              context: context,
+              label: 'Tema',
+              child: RadioSelector<ThemeSetting>(
                 selected: DailyReadingsPreferences.of(context).theme,
                 onSelect: (value) =>
                     DailyReadingsPreferences.of(context).theme = value,
@@ -30,36 +34,87 @@ class Settings extends StatelessWidget {
                   ThemeSetting.light: Icon(SFSymbols.sun_max),
                 },
               ),
-            ]),
-            TableRow(children: [
-              Text('Rito'),
-              RadioSelector<Rite>(
+            ),
+            _buildSettingsRow(
+              context: context,
+              label: 'Rito',
+              child: RadioSelector<Rite>(
                 selected: DailyReadingsPreferences.of(context).rite,
                 onSelect: (value) =>
                     DailyReadingsPreferences.of(context).rite = value,
                 valueIcons: {
-                  Rite.roman: Text('Romano'),
-                  Rite.ambrosian: Text('Ambrosiano'),
+                  Rite.roman: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('Romano'),
+                  ),
+                  Rite.ambrosian: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text('Ambrosiano'),
+                  ),
                 },
               ),
-            ]),
-            TableRow(children: [
-              Text('Testo'),
-              Row(
+            ),
+            _buildSettingsRow(
+              context: context,
+              label: 'Testo',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  IconButton(
-                      icon: Icon(SFSymbols.minus),
-                      onPressed: () =>
-                          DailyReadingsPreferences.of(context).fontSize--),
-                  Text(
-                      DailyReadingsPreferences.of(context).fontSize.toString()),
-                  IconButton(
-                      icon: Icon(SFSymbols.plus),
-                      onPressed: () =>
-                          DailyReadingsPreferences.of(context).fontSize++),
+                  _buildRoundedButton(
+                      context: context,
+                      child: Icon(SFSymbols.minus),
+                      onTap: () =>
+                          DailyReadingsPreferences.of(context).fontSize -= 2),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      DailyReadingsPreferences.of(context)
+                          .fontSize
+                          .round()
+                          .toString(),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                  _buildRoundedButton(
+                      context: context,
+                      child: Icon(SFSymbols.plus),
+                      onTap: () =>
+                          DailyReadingsPreferences.of(context).fontSize += 2),
                 ],
               ),
-            ]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsRow(
+      {@required BuildContext context, String label, Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        color: Theme.of(context).canvasColor,
+        padding: EdgeInsets.zero,
+        child: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 25),
+              width: 80,
+              child: Text(
+                label.toUpperCase(),
+                textAlign: TextAlign.left,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                ),
+              ),
+            ),
+            Expanded(child: child),
           ],
         ),
       ),
@@ -82,10 +137,67 @@ class RadioSelector<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ToggleButtons(
-      children: valueIcons.values.toList(),
-      isSelected: valueIcons.keys.map((e) => e == selected).toList(),
-      onPressed: (index) => onSelect(valueIcons.keys.elementAt(index)),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: this
+          .valueIcons
+          .map<T, Widget>((key, widget) {
+            return MapEntry(
+              key,
+              _buildRoundedButton(
+                  context: context,
+                  onTap: () => onSelect(key),
+                  selected: selected == key,
+                  child: widget),
+            );
+          })
+          .values
+          .toList(),
     );
   }
+}
+
+Widget _buildRoundedButton({
+  @required BuildContext context,
+  bool selected = false,
+  @required void Function() onTap,
+  @required Widget child,
+}) {
+  final textColor = selected ? Colors.white : Colors.grey[700];
+  final backgroundColor =
+      selected ? Theme.of(context).primaryColor : Colors.grey[300];
+  return Container(
+    margin: EdgeInsets.all(5),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(25),
+      child: Material(
+        color: backgroundColor,
+        child: InkWell(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: 50,
+              minHeight: 50,
+              minWidth: 50,
+            ),
+            child: Container(
+              child: Center(
+                child: DefaultTextStyle(
+                  child: IconTheme(
+                    child: child,
+                    data: IconThemeData(color: textColor),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              padding: EdgeInsets.all(10),
+            ),
+          ),
+          onTap: onTap,
+        ),
+      ),
+    ),
+  );
 }

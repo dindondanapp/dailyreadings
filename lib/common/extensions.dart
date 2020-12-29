@@ -77,7 +77,7 @@ extension LocaleString on DateTime {
     'domenica',
   ];
 
-  String toLocaleDateString() {
+  String toLocaleDateString({bool withArticle = false}) {
     final today = DateTime.now();
     if (this.isSameDay(today)) {
       return 'oggi';
@@ -87,11 +87,18 @@ extension LocaleString on DateTime {
       return 'ieri';
     }
 
-    if (today.difference(this) > Duration(days: 90)) {
-      return '${this.day} ${localeMonths[this.month - 1]} ${this.year}';
-    } else {
-      return '${this.day} ${localeMonths[this.month - 1]}';
+    if (this.isSameDay(today.add(Duration(days: 1)))) {
+      return 'domani';
     }
+
+    final article =
+        withArticle ? ([1, 8].contains(this.day) ? 'l\'' : 'il ') : '';
+
+    if (today.difference(this) > Duration(days: 90)) {
+      return '$article${this.day} ${localeMonths[this.month - 1]} ${this.year}';
+    }
+
+    return '$article${this.day} ${localeMonths[this.month - 1]}';
   }
 
   String toLocaleWeekday() => localeWeekdays[this.weekday - 1];

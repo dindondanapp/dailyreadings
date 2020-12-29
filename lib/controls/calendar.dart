@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dailyreadings/common/enums.dart';
 import 'package:date_util/date_util.dart';
 import 'package:flutter/material.dart';
 
@@ -31,38 +29,6 @@ class _CalendarState extends State<Calendar> {
   // The current month is used as the initial page
   final initialPageMonth = Month.now();
 
-  // A stream of metadata from the backend
-  final Stream<Map<Rite, DayInterval>> metaStream = FirebaseFirestore.instance
-      .collection('meta')
-      .doc('calendar')
-      .snapshots()
-      .map((event) {
-        return Map.fromEntries(
-          Rite.values.map((rite) {
-            try {
-              final riteMeta =
-                  event.get(rite.enumSerialize()) as Map<String, dynamic>;
-              final start =
-                  Day.fromDateTime((riteMeta['start'] as Timestamp).toDate());
-              final end =
-                  Day.fromDateTime((riteMeta['end'] as Timestamp).toDate());
-
-              return MapEntry<Rite, DayInterval>(
-                rite,
-                DayInterval(
-                  start: start,
-                  end: end,
-                ),
-              );
-            } catch (e) {}
-
-            return MapEntry(rite, DayInterval());
-          }),
-        );
-      })
-      .where((event) => event != null)
-      .distinct();
-
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
@@ -84,12 +50,25 @@ class _CalendarState extends State<Calendar> {
     final headingRow = TableRow(
       children: ['L', 'M', 'M', 'G', 'V', 'S', 'D']
           .map(
-            (e) => Text(
-              e,
-              textAlign: TextAlign.center,
+            (e) => Container(
+              child: Text(
+                e,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 4),
             ),
           )
           .toList(),
+      decoration: BoxDecoration(
+        border: Border.symmetric(
+          horizontal: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+      ),
     );
     final weekWidgets = List<TableRow>.generate(
       totalWeeks,
@@ -110,31 +89,45 @@ class _CalendarState extends State<Calendar> {
       ),
     );
 
-    return Stack(
-      children: [
-        Align(
-          alignment: Alignment.topCenter,
-          child: Text(
-            month.toLocaleMonthString().toUpperCase(),
-            style: TextStyle(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.only(top: 50),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 300, minHeight: 150),
-              child: Table(
-                children: [headingRow, ...weekWidgets],
-                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+    return Container(
+      padding: EdgeInsets.only(top: 20),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: Text(
+              month.toLocaleMonthString().toUpperCase(),
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.normal,
+                fontSize: 18,
               ),
             ),
           ),
-        ),
-      ],
+          Container(
+            margin: EdgeInsets.only(top: 30),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 300, minHeight: 150),
+                child: Table(
+                  children: [
+                    headingRow,
+                    TableRow(
+                      children: headingRow.children
+                          .map((e) => SizedBox(
+                                height: 10,
+                              ))
+                          .toList(),
+                    ),
+                    ...weekWidgets
+                  ],
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -167,7 +160,8 @@ class _CalendarState extends State<Calendar> {
       return Center(
         child: Text(
           day.day.toString(),
-          style: TextStyle(color: Colors.grey[500]),
+          style:
+              TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold),
         ),
       );
     } else {

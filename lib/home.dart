@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:dailyreadings/controls/controls_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import 'common/dailyreadings_preferences.dart';
 import 'common/extensions.dart';
@@ -46,9 +46,19 @@ class _HomeState extends State<Home> {
     // Change controls opacity to only show them when the page is scrolled up
     scrollController.addListener(() {
       if (scrollController.offset <= controlsBoxSize * 0.25) {
-        _controlsState.boxOpen = true;
-      } else if (scrollController.offset >= controlsBoxSize * 0.75) {
-        _controlsState.boxOpen = false;
+        if (_controlsState.boxOpen != BoxOpenState.open) {
+          _controlsState.boxOpen = BoxOpenState.open;
+        }
+      } else if (scrollController.offset < controlsBoxSize * 0.75) {
+        if (_controlsState.boxOpen == BoxOpenState.open) {
+          _controlsState.boxOpen = BoxOpenState.closing;
+        } else if (_controlsState.boxOpen == BoxOpenState.closed) {
+          _controlsState.boxOpen = BoxOpenState.opening;
+        }
+      } else {
+        if (_controlsState.boxOpen != BoxOpenState.closed) {
+          _controlsState.boxOpen = BoxOpenState.closed;
+        }
       }
     });
 
@@ -100,23 +110,7 @@ class _HomeState extends State<Home> {
       data:
           brightness == Brightness.dark ? widget.darkTheme : widget.lightTheme,
       child: Scaffold(
-        body: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                DefaultTextStyle(
-                  style: TextStyle(
-                      fontSize: DailyReadingsPreferences.of(context)
-                          .fontSize
-                          .toDouble(),
-                      color: Colors.black),
-                  child: _buildReader(),
-                ),
-              ],
-            ),
-          ],
-        ),
+        body: _buildReader(),
       ),
     );
   }
@@ -124,78 +118,183 @@ class _HomeState extends State<Home> {
   Widget _buildReader() {
     assert(repository != null);
 
-    return Expanded(
-      child: Stack(
-        children: [
-          ListView(
-            physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
-            controller: scrollController,
-            padding: EdgeInsets.only(
-              left: max(MediaQuery.of(context).padding.left, 30),
-              right: max(MediaQuery.of(context).padding.right, 30),
-              bottom: MediaQuery.of(context).padding.bottom,
-              top: MediaQuery.of(context).padding.top + 20,
-            ),
-            children: [
-              SizedBox(
-                height: controlsBoxSize,
-                child: ControlsBox(controller: _controlsState),
-              ),
-              Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 400),
-                  child: Stack(
-                    children: [
-                      StreamBuilder<ReadingsSnapshot>(
+    return Stack(
+      children: [
+        ListView(
+          physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
+          controller: scrollController,
+          padding: EdgeInsets.only(
+            left: max(MediaQuery.of(context).padding.left, 15),
+            right: max(MediaQuery.of(context).padding.right, 15),
+            bottom: MediaQuery.of(context).padding.bottom,
+            top: MediaQuery.of(context).padding.top + 15,
+          ),
+          children: [
+            Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 400,
+                  minHeight: controlsBoxSize +
+                      MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.bottom -
+                      MediaQuery.of(context).padding.top,
+                ),
+                child: Column(
+                  children: [
+                    _buildControlsBoxAndBar(),
+                    DefaultTextStyle(
+                      style: TextStyle(
+                          fontSize: DailyReadingsPreferences.of(context)
+                              .fontSize
+                              .toDouble(),
+                          color: Colors.black),
+                      child: StreamBuilder<ReadingsSnapshot>(
                         stream: repository.readingsStream,
                         builder: (context, snapshot) {
-                          if (snapshot.hasError ||
-                              snapshot.data == null ||
-                              snapshot.data.badFormat) {
-                            print(snapshot.error);
-                            return Text(
-                                'Something went wrong'); // TODO: Handle appropriately
-                          }
+                          return Container(
+                            padding: EdgeInsets.all(15),
+                            child: AnimatedOpacity(
+                              duration: Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              opacity: snapshot.connectionState ==
+                                      ConnectionState.waiting
+                                  ? 0.5
+                                  : 1,
+                              child: Builder(builder: (context) {
+                                if (snapshot.hasError ||
+                                    snapshot.data == null ||
+                                    snapshot.data.badFormat) {
+                                  print(snapshot.error);
+                                  return _buildReadingsError();
+                                }
+                                if (snapshot.data.exists) {
+                                  return ReadingsDisplay(
+                                      data: snapshot.data.data);
+                                }
 
-                          return AnimatedOpacity(
-                            duration: Duration(milliseconds: 500),
-                            curve: Curves.easeInOut,
-                            opacity: snapshot.connectionState ==
-                                    ConnectionState.waiting
-                                ? 0.5
-                                : 1,
-                            child: snapshot.data.exists
-                                ? ReadingsDisplay(data: snapshot.data.data)
-                                : Text(
-                                    "Le letture per questo giorno non sono disponibili."),
+                                if (snapshot.data.waitingForDownload) {
+                                  return FutureBuilder<Widget>(
+                                      key: Key(snapshot.data.requestedId
+                                          .serialize()),
+                                      future: Future.delayed(
+                                          Duration(
+                                              seconds:
+                                                  15), // TODO: Standard timeouts
+                                          () => _buildReadingsError()),
+                                      initialData: _buildReadingsDownload(),
+                                      builder: (context, snapshot) {
+                                        return snapshot.data;
+                                      });
+                                }
+
+                                return _buildReadingsNotAvailable(
+                                    snapshot.data.requestedId);
+                              }),
+                            ),
                           );
                         },
                       ),
-                      Align(
-                        child: ControlsBar(
-                          date: _controlsState.day,
-                          controller: _controlsState,
-                          onCalendarTap: onCalendarTap,
-                          onSettingsTap: onSettingsTap,
-                        ),
-                        alignment: Alignment.topRight,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+        StatusBarBlendCover(),
+      ],
+    );
+  }
+
+  Widget _buildControlsBoxAndBar() {
+    return ControlsBox(
+      controller: _controlsState,
+      size: controlsBoxSize,
+      onCalendarTap: onCalendarTap,
+      onSettingsTap: onSettingsTap,
+    );
+  }
+
+  Widget _buildReadingsNotAvailable(ReadingsDataIdentifier id) {
+    final text =
+        'Le letture per ${id.day.toLocaleDateString(withArticle: true)} non sono ${id.day.isAfter(Day.now()) ? "ancora" : "più"} disponibili. Seleziona un altro giorno.';
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 50),
+          Icon(
+            SFSymbols.clock,
+            size: 50,
+            color: Colors.grey,
           ),
-          StatusBarBlendCover(),
+          SizedBox(height: 50),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 200),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadingsError() {
+    final text =
+        'Non è stato possibile scaricare le letture del giorno. Controlla la connessione di rete.';
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 50),
+          Icon(
+            SFSymbols.exclamationmark_circle,
+            size: 50,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 50),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 210),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadingsDownload() {
+    final text = 'Download in corso…';
+    return Center(
+      child: Column(
+        children: [
+          SizedBox(height: 50),
+          Icon(
+            SFSymbols.cloud_download,
+            size: 50,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 50),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 210),
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+          ),
         ],
       ),
     );
   }
 
   void onCalendarTap() {
-    print('Calendar tapped');
     if (_controlsState.selection == ControlsBoxSelection.calendar &&
-        _controlsState.boxOpen) {
+        _controlsState.boxOpen != BoxOpenState.closed) {
       scrollController.animateTo(controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
@@ -207,7 +306,7 @@ class _HomeState extends State<Home> {
 
   void onSettingsTap() {
     if (_controlsState.selection == ControlsBoxSelection.settings &&
-        _controlsState.boxOpen) {
+        _controlsState.boxOpen != BoxOpenState.closed) {
       scrollController.animateTo(controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {

@@ -1,12 +1,13 @@
 import 'dart:math';
 
+import 'package:dailyreadings/controls/controls_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 
 import 'common/dailyreadings_preferences.dart';
 import 'common/extensions.dart';
 import 'common/palette.dart';
-import 'controls/controls_bar.dart';
 import 'controls/controls_box.dart';
 import 'reader/readings_display.dart';
 import 'readings_repository.dart';
@@ -28,7 +29,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  static final double controlsBoxSize = 400;
+  static final double controlsBoxSize = 300;
 
   // A repository to access a remote reading. Will be initialized in initState.
   ReadingsRepository repository;
@@ -44,15 +45,10 @@ class _HomeState extends State<Home> {
 
     // Change controls opacity to only show them when the page is scrolled up
     scrollController.addListener(() {
-      final offsetStart = controlsBoxSize + 30;
-      final offsetEnd = controlsBoxSize + 40;
-
-      if (scrollController.offset < offsetStart) {
-        _controlsState.barVisible = true;
-      }
-
-      if (scrollController.offset > offsetEnd) {
-        _controlsState.barVisible = false;
+      if (scrollController.offset <= controlsBoxSize * 0.25) {
+        _controlsState.boxOpen = true;
+      } else if (scrollController.offset >= controlsBoxSize * 0.75) {
+        _controlsState.boxOpen = false;
       }
     });
 
@@ -119,16 +115,6 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-            Align(
-              alignment: Alignment.topCenter,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: Container()),
-                  _buildControlsBar(),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -151,53 +137,84 @@ class _HomeState extends State<Home> {
               top: MediaQuery.of(context).padding.top + 20,
             ),
             children: [
-              ControlsBox(controller: _controlsState),
+              SizedBox(
+                height: controlsBoxSize,
+                child: ControlsBox(controller: _controlsState),
+              ),
               Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: 400),
-                  child: StreamBuilder<ReadingsSnapshot>(
-                    stream: repository.readingsStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError ||
-                          snapshot.data == null ||
-                          snapshot.data.badFormat) {
-                        print(snapshot.error);
-                        return Text(
-                            'Something went wrong'); // TODO: Handle appropriately
-                      }
+                  child: Stack(
+                    children: [
+                      StreamBuilder<ReadingsSnapshot>(
+                        stream: repository.readingsStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError ||
+                              snapshot.data == null ||
+                              snapshot.data.badFormat) {
+                            print(snapshot.error);
+                            return Text(
+                                'Something went wrong'); // TODO: Handle appropriately
+                          }
 
-                      return AnimatedOpacity(
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.easeInOut,
-                        opacity:
-                            snapshot.connectionState == ConnectionState.waiting
+                          return AnimatedOpacity(
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeInOut,
+                            opacity: snapshot.connectionState ==
+                                    ConnectionState.waiting
                                 ? 0.5
                                 : 1,
-                        child: snapshot.data.exists
-                            ? ReadingsDisplay(data: snapshot.data.data)
-                            : Text(
-                                "Le letture per questo giorno non sono disponibili."),
-                      );
-                    },
+                            child: snapshot.data.exists
+                                ? ReadingsDisplay(data: snapshot.data.data)
+                                : Text(
+                                    "Le letture per questo giorno non sono disponibili."),
+                          );
+                        },
+                      ),
+                      Align(
+                        child: ControlsBar(
+                          date: _controlsState.day,
+                          controller: _controlsState,
+                          onCalendarTap: onCalendarTap,
+                          onSettingsTap: onSettingsTap,
+                        ),
+                        alignment: Alignment.topRight,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          ...!_controlsState.boxOpen ? [StatusBarBlendCover()] : [],
+          StatusBarBlendCover(),
         ],
       ),
     );
   }
 
-  Widget _buildControlsBar() {
-    return Container(
-      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10),
-      child: ControlsBar(
-        date: _controlsState.day,
-        controller: _controlsState,
-      ),
-    );
+  void onCalendarTap() {
+    print('Calendar tapped');
+    if (_controlsState.selection == ControlsBoxSelection.calendar &&
+        _controlsState.boxOpen) {
+      scrollController.animateTo(controlsBoxSize,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    } else {
+      _controlsState.selection = ControlsBoxSelection.calendar;
+      scrollController.animateTo(0,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    }
+  }
+
+  void onSettingsTap() {
+    if (_controlsState.selection == ControlsBoxSelection.settings &&
+        _controlsState.boxOpen) {
+      scrollController.animateTo(controlsBoxSize,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    } else {
+      _controlsState.selection = ControlsBoxSelection.settings;
+      scrollController.animateTo(0,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    }
   }
 
   @override
@@ -257,16 +274,23 @@ class HomeScrollPhysics extends ScrollPhysics {
   @override
   Simulation createBallisticSimulation(
       ScrollMetrics position, double velocity) {
-    if (position.pixels > 0 && position.pixels < controlsBoxSize / 2) {
-      return ScrollSpringSimulation(spring, position.pixels, 0, velocity,
-          tolerance: tolerance);
-    } else if (position.pixels >= controlsBoxSize / 2 &&
-        position.pixels < controlsBoxSize) {
-      return ScrollSpringSimulation(
-          spring, position.pixels, controlsBoxSize, velocity,
-          tolerance: tolerance);
-    } else {
+    if ([0, controlsBoxSize].contains(position.pixels) && velocity == 0) {
       return super.createBallisticSimulation(position, velocity);
+    } else {
+      if (position.pixels < controlsBoxSize / 2) {
+        return ScrollSpringSimulation(spring, position.pixels, 0, velocity,
+            tolerance: tolerance);
+      } else if (position.pixels >= controlsBoxSize / 2 &&
+          position.pixels < controlsBoxSize) {
+        return ScrollSpringSimulation(
+            spring, position.pixels, controlsBoxSize, velocity,
+            tolerance: tolerance);
+      } else if (position.pixels < position.maxScrollExtent) {
+        return BoundedFrictionSimulation(0.15, position.pixels, velocity,
+            controlsBoxSize, position.maxScrollExtent);
+      } else {
+        return super.createBallisticSimulation(position, velocity);
+      }
     }
   }
 

@@ -27,17 +27,16 @@ class ControlsBar extends StatelessWidget {
           _buildButton(
             context: context,
             icon: SFSymbols.calendar,
-            label: (date ?? DateTime.now()).toLocaleDateString(),
-            selected: controller.boxOpen == BoxOpenState.open &&
-                controller.selection == ControlsBoxSelection.calendar,
+            label:
+                (date ?? DateTime.now()).toLocaleDateString(withWeekday: true),
+            selected: controller.selection == ControlsBoxSelection.calendar,
             onTap: onCalendarTap,
           ),
           _buildButton(
             context: context,
             icon: SFSymbols.gear,
             onTap: onSettingsTap,
-            selected: controller.boxOpen == BoxOpenState.open &&
-                controller.selection == ControlsBoxSelection.settings,
+            selected: controller.selection == ControlsBoxSelection.settings,
           ),
         ],
       ),
@@ -50,8 +49,7 @@ class ControlsBar extends StatelessWidget {
       String label,
       @required void Function() onTap,
       bool selected = false}) {
-    final selectedBackground =
-        Theme.of(context).primaryColor.toMaterialColor()[200];
+    final selectedBackground = Theme.of(context).canvasColor;
     final background =
         selected ? selectedBackground : selectedBackground.withAlpha(0);
     return Container(
@@ -79,7 +77,7 @@ class ControlsBar extends StatelessWidget {
                         ? Text(
                             label,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                             ),
                           )
                         : Container(),

@@ -7,22 +7,12 @@ import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import 'common/dailyreadings_preferences.dart';
 import 'common/extensions.dart';
-import 'common/palette.dart';
 import 'controls/controls_box.dart';
 import 'reader/readings_display.dart';
 import 'readings_repository.dart';
 
 /// Main widget, that contains all the dynamic content of the app
 class Home extends StatefulWidget {
-  final ThemeData lightTheme = ThemeData(
-    primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
-  );
-
-  final ThemeData darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
-  );
-
   Home({Key key}) : super(key: key);
   @override
   _HomeState createState() => _HomeState();
@@ -91,27 +81,13 @@ class _HomeState extends State<Home> {
     super.didChangeDependencies();
   }
 
-  Brightness get brightness {
-    final theme = DailyReadingsPreferences.of(context).theme;
-
-    if (theme == ThemeSetting.system) {
-      return MediaQuery.of(context).platformBrightness;
-    } else {
-      return theme == ThemeSetting.dark ? Brightness.dark : Brightness.light;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
     ));
-    return Theme(
-      data:
-          brightness == Brightness.dark ? widget.darkTheme : widget.lightTheme,
-      child: Scaffold(
-        body: _buildReader(),
-      ),
+    return Scaffold(
+      body: _buildReader(),
     );
   }
 
@@ -142,12 +118,12 @@ class _HomeState extends State<Home> {
                 child: Column(
                   children: [
                     _buildControlsBoxAndBar(),
-                    DefaultTextStyle(
+                    DefaultTextStyle.merge(
                       style: TextStyle(
-                          fontSize: DailyReadingsPreferences.of(context)
-                              .fontSize
-                              .toDouble(),
-                          color: Colors.black),
+                        fontSize: DailyReadingsPreferences.of(context)
+                            .fontSize
+                            .toDouble(),
+                      ),
                       child: StreamBuilder<ReadingsSnapshot>(
                         stream: repository.readingsStream,
                         builder: (context, snapshot) {

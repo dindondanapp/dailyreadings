@@ -77,28 +77,40 @@ extension LocaleString on DateTime {
     'domenica',
   ];
 
-  String toLocaleDateString({bool withArticle = false}) {
+  String toLocaleDateString(
+      {bool withArticle = false,
+      bool relative = false,
+      bool withWeekday = false}) {
+    if (withArticle && withWeekday) {
+      throw Exception(
+          'withWeekday and withArticle cannot be true at the same time.');
+    }
+
     final today = DateTime.now();
-    if (this.isSameDay(today)) {
-      return 'oggi';
-    }
 
-    if (this.isSameDay(today.subtract(Duration(days: 1)))) {
-      return 'ieri';
-    }
+    if (relative) {
+      if (this.isSameDay(today)) {
+        return 'oggi';
+      }
 
-    if (this.isSameDay(today.add(Duration(days: 1)))) {
-      return 'domani';
+      if (this.isSameDay(today.subtract(Duration(days: 1)))) {
+        return 'ieri';
+      }
+
+      if (this.isSameDay(today.add(Duration(days: 1)))) {
+        return 'domani';
+      }
     }
 
     final article =
         withArticle ? ([1, 8].contains(this.day) ? 'l\'' : 'il ') : '';
+    final weekday = withWeekday ? '${this.toLocaleWeekday()} ' : '';
 
     if (today.difference(this) > Duration(days: 90)) {
-      return '$article${this.day} ${localeMonths[this.month - 1]} ${this.year}';
+      return '$weekday$article${this.day} ${localeMonths[this.month - 1]} ${this.year}';
     }
 
-    return '$article${this.day} ${localeMonths[this.month - 1]}';
+    return '$weekday$article${this.day} ${localeMonths[this.month - 1]}';
   }
 
   String toLocaleWeekday() => localeWeekdays[this.weekday - 1];

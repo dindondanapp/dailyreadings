@@ -27,7 +27,10 @@ class ReadingsDisplay extends StatelessWidget {
             children: [
               Text(
                 data.title,
-                style: TextStyle(color: Theme.of(context).primaryColor),
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontSize:
+                        DefaultTextStyle.of(context).style.fontSize * 0.8),
               ),
             ],
           ),
@@ -115,6 +118,7 @@ class BlockWidget extends StatelessWidget {
             fontFamily: 'Charter',
             height: 1.5,
             fontSize: DefaultTextStyle.of(context).style.fontSize,
+            color: DefaultTextStyle.of(context).style.color,
           ),
           dropCap: CustomDropCap(
             block.content.substring(0, 1),
@@ -131,6 +135,8 @@ class BlockWidget extends StatelessWidget {
           block.content,
           style: TextStyle(
             fontFamily: 'Charter',
+            fontWeight:
+                block.type == BlockType.Emphasis ? FontWeight.bold : null,
             height: 1.5,
           ),
           textAlign: TextAlign.justify,

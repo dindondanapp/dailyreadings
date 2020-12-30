@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'common/dailyreadings_preferences.dart';
+import 'common/extensions.dart';
+import 'common/palette.dart';
 import 'home.dart';
 
 void main() async {
@@ -16,12 +18,31 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return DailyReadingsPreferences(
       defaultFontSize: 14.0,
-      defaultTheme: ThemeSetting.system,
-      child: MaterialApp(
-        title: 'Letture del giorno',
-        debugShowCheckedModeBanner: false,
-        home: Home(),
+      defaultTheme: ThemeMode.system,
+      child: Builder(
+        builder: (context) => _buildApp(context),
       ),
+    );
+  }
+
+  Widget _buildApp(BuildContext context) {
+    final ThemeData lightTheme = ThemeData(
+      primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
+    );
+
+    final ThemeData darkTheme = ThemeData.dark().copyWith(
+      brightness: Brightness.dark,
+      primaryColor: Palette.dinDonDanBlue,
+      accentColor: Palette.dinDonDanBlue,
+    );
+
+    return MaterialApp(
+      darkTheme: darkTheme,
+      theme: lightTheme,
+      themeMode: DailyReadingsPreferences.of(context).theme,
+      title: 'Letture del giorno',
+      debugShowCheckedModeBanner: false,
+      home: Home(),
     );
   }
 }

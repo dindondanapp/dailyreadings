@@ -55,7 +55,6 @@ class _CalendarState extends State<Calendar> {
                 e,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -66,7 +65,8 @@ class _CalendarState extends State<Calendar> {
           .toList(),
       decoration: BoxDecoration(
         border: Border.symmetric(
-          horizontal: BorderSide(color: Theme.of(context).primaryColor),
+          horizontal:
+              BorderSide(color: DefaultTextStyle.of(context).style.color),
         ),
       ),
     );
@@ -98,7 +98,6 @@ class _CalendarState extends State<Calendar> {
             child: Text(
               month.toLocaleMonthString().toUpperCase(),
               style: TextStyle(
-                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.normal,
                 fontSize: 18,
               ),
@@ -149,9 +148,9 @@ class _CalendarState extends State<Calendar> {
     final isToday = day.isSameDay(today);
 
     final color = isSameDay
-        ? Theme.of(context).primaryColor
+        ? Theme.of(context).accentColor
         : isToday
-            ? Theme.of(context).primaryColor.toMaterialColor()[200]
+            ? Theme.of(context).accentColor.withOpacity(0.4)
             : Colors.grey[350];
 
     final textColor = isSameDay ? Colors.white : Colors.grey[800];

@@ -21,36 +21,55 @@ class ControlsBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-        valueListenable: controller,
-        builder: (context, value, widget) {
-          final color = controller.boxOpen == BoxOpenState.open ||
-                  controller.boxOpen == BoxOpenState.opening
-              ? Colors.grey[200]
-              : Theme.of(context).canvasColor;
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: AnimatedContainer(
-              curve: Curves.ease,
-              duration: Duration(milliseconds: 500),
-              color: color,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: size,
-                    child: _buildChildForSelection(),
+    final textColor = Theme.of(context).brightness == Brightness.light
+        ? Colors.grey[700]
+        : Colors.grey[200];
+    final backgroundColor = Theme.of(context).brightness == Brightness.light
+        ? Colors.grey[200]
+        : Colors.grey[800];
+    final buttonColor = Theme.of(context).brightness == Brightness.light
+        ? Colors.grey[300]
+        : Colors.grey[600];
+    final selectionColor = Theme.of(context).canvasColor;
+    return Theme(
+      data: Theme.of(context).copyWith(
+          primaryColor: selectionColor,
+          backgroundColor: backgroundColor,
+          buttonColor: buttonColor),
+      child: DefaultTextStyle(
+        style: TextStyle(color: textColor),
+        child: ValueListenableBuilder(
+            valueListenable: controller,
+            builder: (context, value, widget) {
+              final color = controller.boxOpen == BoxOpenState.open ||
+                      controller.boxOpen == BoxOpenState.opening
+                  ? Theme.of(context).backgroundColor
+                  : Theme.of(context).backgroundColor.withAlpha(0);
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: AnimatedContainer(
+                  curve: Curves.ease,
+                  duration: Duration(milliseconds: 500),
+                  color: color,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: size,
+                        child: _buildChildForSelection(),
+                      ),
+                      ControlsBar(
+                        date: controller.day,
+                        controller: controller,
+                        onCalendarTap: onCalendarTap,
+                        onSettingsTap: onSettingsTap,
+                      ),
+                    ],
                   ),
-                  ControlsBar(
-                    date: controller.day,
-                    controller: controller,
-                    onCalendarTap: onCalendarTap,
-                    onSettingsTap: onSettingsTap,
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
+                ),
+              );
+            }),
+      ),
+    );
   }
 
   Widget _buildChildForSelection() {

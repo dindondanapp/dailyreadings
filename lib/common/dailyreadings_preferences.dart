@@ -8,7 +8,7 @@ import 'local_preferences.dart';
 /// widgets
 class DailyReadingsPreferences extends LocalPreferences {
   final double defaultFontSize;
-  final ThemeSetting defaultTheme;
+  final ThemeMode defaultTheme;
   DailyReadingsPreferences({
     @required this.defaultTheme,
     @required this.defaultFontSize,
@@ -40,16 +40,16 @@ class DailyReadingsPreferences extends LocalPreferences {
   set rite(Rite rite) => set('rite', rite.enumSerialize());
 
   /// Theme
-  ThemeSetting get theme {
+  ThemeMode get theme {
     final String themeString = get('theme');
 
-    return ThemeSetting.values.firstWhere(
+    return ThemeMode.values.firstWhere(
       (e) => e.enumSerialize() == themeString,
       orElse: () => defaultTheme,
     );
   }
 
-  set theme(ThemeSetting value) => set('theme', value.enumSerialize());
+  set theme(ThemeMode value) => set('theme', value.enumSerialize());
 
   /// First open
   bool get firstTime => get('first_time');

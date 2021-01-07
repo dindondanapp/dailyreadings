@@ -126,6 +126,8 @@ class _HomeState extends State<Home> {
                       ),
                       child: StreamBuilder<ReadingsSnapshot>(
                         stream: repository.readingsStream,
+                        initialData:
+                            ReadingsSnapshot.notDownloaded(repository.id),
                         builder: (context, snapshot) {
                           return Container(
                             padding: EdgeInsets.all(15),
@@ -139,16 +141,19 @@ class _HomeState extends State<Home> {
                               child: Builder(builder: (context) {
                                 if (snapshot.hasError ||
                                     snapshot.data == null ||
-                                    snapshot.data.badFormat) {
+                                    snapshot.data.state ==
+                                        ReadingsSnapshotState.badFormat) {
                                   print(snapshot.error);
                                   return _buildReadingsError();
                                 }
-                                if (snapshot.data.exists) {
+                                if (snapshot.data.state ==
+                                    ReadingsSnapshotState.downloaded) {
                                   return ReadingsDisplay(
                                       data: snapshot.data.data);
                                 }
 
-                                if (snapshot.data.waitingForDownload) {
+                                if (snapshot.data.state ==
+                                    ReadingsSnapshotState.waitingForDownload) {
                                   return FutureBuilder<Widget>(
                                       key: Key(snapshot.data.requestedId
                                           .serialize()),

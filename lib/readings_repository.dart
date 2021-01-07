@@ -6,11 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'common/enums.dart';
 import 'common/extensions.dart';
 
+/// An object that handles data sourcing for the readings
 class ReadingsRepository {
   final ReadingsDataIdentifier id;
   final Rite rite;
 
-  /// Creates an object that handles data sourcing from Firebase Cloud Firestore, for the given [ReadingsDataIdentifier]
+  /// Creates an object that handles data sourcing from Firebase Cloud
+  /// Firestore, for the given [ReadingsDataIdentifier]
   ReadingsRepository(this.id, this.rite)
       : readingsStream = getReadingsStream(id),
         calendarInterval = getCalendarIntervalStream(rite);
@@ -19,7 +21,8 @@ class ReadingsRepository {
   final Stream<ReadingsSnapshot> readingsStream;
   final Stream<DayInterval> calendarInterval;
 
-  /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote repository for the given [day]
+  /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote
+  /// repository for the given [day]
   static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
     return FirebaseFirestore.instance
         .collection('readings')
@@ -38,6 +41,8 @@ class ReadingsRepository {
     }).asBroadcastStream();
   }
 
+  /// Creates a broadcast [Stream] of [DayInterval] that describes the dates of
+  /// the available readings for the selected rite
   static Stream<DayInterval> getCalendarIntervalStream(Rite rite) {
     return FirebaseFirestore.instance
         .collection('meta')
@@ -57,14 +62,17 @@ class ReadingsRepository {
   }
 }
 
+/// A unique identifier for a set of daily readings
 class ReadingsDataIdentifier {
   final Day day;
   final Rite rite;
 
-  /// Creates a unique identifier for a set of daily readings, that can be se
+  /// Creates a unique identifier for a set of daily readings, defined by the
+  /// date and rite of the readings
   ReadingsDataIdentifier({@required this.day, @required this.rite});
 
-  /// Returns a serialized identifier in a standard format consistent with the remote repository
+  /// Returns a serialized identifier in a standard format consistent with the
+  /// remote repository
   String serialize() {
     return '${this.day.toLocal().year}-${this.day.toLocal().month.toString().padLeft(2, '0')}-${this.day.toLocal().day.toString().padLeft(2, '0')}-${this.rite.enumSerialize()}';
   }
@@ -79,37 +87,39 @@ class ReadingsDataIdentifier {
   int get hashCode => serialize().hashCode;
 }
 
+/// A snapshot object that contains the response to a request for daily readings
 class ReadingsSnapshot {
   final ReadingsDataIdentifier requestedId;
   final ReadingsData data;
-  final bool exists;
-  final bool badFormat;
-  final bool waitingForDownload;
+  final ReadingsSnapshotState state;
 
   ReadingsSnapshot.notDownloaded(this.requestedId)
       : data = null,
-        exists = false,
-        badFormat = false,
-        waitingForDownload = true;
+        state = ReadingsSnapshotState.waitingForDownload;
 
   ReadingsSnapshot.nonExistent(this.requestedId)
       : data = null,
-        exists = false,
-        badFormat = false,
-        waitingForDownload = false;
+        state = ReadingsSnapshotState.inexistent;
 
   /// Creates a structured set of readings from a suitably formatted Cloud Firestore map
   ReadingsSnapshot.fromFirebase(this.requestedId, Map<String, dynamic> document)
-      : data = ReadingsData(
-          title: document["title"],
-          rite: parseRite(document["rite"]),
-          source: Uri.tryParse(document["source"]),
-          date: DateTime.tryParse(document["date"]),
-          sections: parseSections(document["sections"]),
-        ),
-        exists = true,
-        badFormat = false,
-        waitingForDownload = false;
+      : data = ReadingsParser.parse(document),
+        state = ReadingsSnapshotState.downloaded;
+}
+
+/// A static class with methods to parse a Firestore document and its parse
+/// into valid objects for the reader
+class ReadingsParser {
+  /// Returns a parsed [ReadingsData] object from its serialized representation
+  static ReadingsData parse(Map<String, dynamic> document) {
+    return ReadingsData(
+      title: document["title"],
+      rite: parseRite(document["rite"]),
+      source: Uri.tryParse(document["source"]),
+      date: DateTime.tryParse(document["date"]),
+      sections: parseSections(document["sections"]),
+    );
+  }
 
   /// Returns a parsed rite from its serialized representation
   static Rite parseRite(String string) {
@@ -119,7 +129,8 @@ class ReadingsSnapshot {
     return riteMatchMap.containsKey(string) ? riteMatchMap[string] : null;
   }
 
-  /// Returns a list of parsed sections from
+  /// Returns a list of parsed [Section] objects from their Firestore
+  /// representation
   static List<Section> parseSections(List data) {
     // Create a map that matches the string representation of the section type to a valid [RomanSectionType]
     Map sectionTypeMatch = Map.fromEntries(
@@ -156,8 +167,10 @@ class ReadingsSnapshot {
     }
   }
 
+  /// Returns a parsed [SectionAlternative] from their Firestore representation
   static SectionAlternative parseSectionAlternative(dynamic data) {
-    // Create a map that matches the string representation of the section type to a valid [RomanSectionType]
+    // Create a map that matches the string representation of the section
+    // type to a valid [RomanSectionType]
     Map blockTypeMatch = Map.fromEntries(
       BlockType.values.map<MapEntry<String, BlockType>>(
         (value) => MapEntry(value.enumSerialize(), value),
@@ -189,4 +202,11 @@ class ReadingsSnapshot {
       return null;
     }
   }
+}
+
+enum ReadingsSnapshotState {
+  inexistent,
+  badFormat,
+  waitingForDownload,
+  downloaded
 }

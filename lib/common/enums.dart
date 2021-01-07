@@ -26,8 +26,9 @@ class Section {
 
 class SectionAlternative {
   final List<Block> blocks;
+  final String label;
 
-  SectionAlternative({@required this.blocks});
+  SectionAlternative({@required this.blocks, this.label});
 }
 
 class Block {

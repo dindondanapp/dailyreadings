@@ -165,6 +165,7 @@ class ReadingsSnapshot {
     );
     if (data is Map && data["blocks"] is List) {
       return SectionAlternative(
+        label: data["label"],
         blocks: List.castFrom(data["blocks"])
             .map<Block>(
               (blockMap) {

@@ -48,6 +48,7 @@ enum BlockType {
   Heading, // Heading of a section (sometimes there may be multiple headings)
   Subheading,
   Emphasis,
+  Source, // A block that introduces a text stating the soruce
   Reference, // Reference to scriptures
   Text, // Normal text
   Verse, // A verse in a poetry-stile text

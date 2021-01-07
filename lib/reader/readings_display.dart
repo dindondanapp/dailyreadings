@@ -48,12 +48,16 @@ class ReadingsDisplay extends StatelessWidget {
                           SectionType.rLectioPrima,
                           SectionType.rLectioSecunda,
                           SectionType.rEvangelium,
+                          SectionType.aEpistula,
+                          SectionType.aLectio,
+                          SectionType.aEvangelium,
                         ];
                         final dropCap =
                             dropCapSections.contains(section.name) &&
                                 block ==
                                     alternative.blocks.firstWhere(
-                                        (el) => el.type == BlockType.Text);
+                                        (el) => el.type == BlockType.Text,
+                                        orElse: () => null);
                         return BlockWidget(
                           block: block,
                           dropCap: dropCap,

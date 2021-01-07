@@ -43,6 +43,7 @@ app.*.map.json
 # Backend and private keys
 google-services.json
 GoogleService-Info.plist
+key.jks
 
 # Visual Studio Code configuration
 /.vscode

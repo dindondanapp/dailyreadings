@@ -1,14 +1,41 @@
-import 'package:drop_cap_text/drop_cap_text.dart';
+import 'package:dailyreadings/reader/section_widget.dart';
 import 'package:flutter/material.dart';
 
 import '../common/enums.dart';
 
+/// A widget that displays the daily readings
 class ReadingsDisplay extends StatelessWidget {
   final ReadingsData data;
   const ReadingsDisplay({Key key, @required this.data}) : super(key: key);
 
+  /// Whether the readings should be displayed with alternative versions of the
+  /// whole set of readings, instead of alternative versions for the single
+  /// sections. This is done when all the sections with alternatives has
+  /// labeled alternatives, and the labels are the same for every section. Each
+  /// label will correspond to a global alternative.
+  bool get dataHasGlobalAlternatives {
+    final sectionsWithAlternatives = data.sections
+        .where((element) => element.alternatives.length > 1)
+        .toList();
+
+    return sectionsWithAlternatives.length > 1 &&
+        sectionsWithAlternatives.every(
+          (section) {
+            final hasLabels = section.alternatives.every(
+                (element) => element.label != null && element.label != '');
+
+            final hasSameLabelsAsFirst = section.alternatives
+                    .map((e) => e.label) ==
+                sectionsWithAlternatives.first.alternatives.map((e) => e.label);
+            return hasLabels && hasSameLabelsAsFirst;
+          },
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final globalAlternativeControl = dataHasGlobalAlternatives;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -35,180 +62,13 @@ class ReadingsDisplay extends StatelessWidget {
             ],
           ),
         ),
-        ...data.sections.map(
-          (section) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: section.alternatives
-                .map(
-                  (alternative) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: alternative.blocks.map(
-                      (block) {
-                        const dropCapSections = [
-                          SectionType.rLectioPrima,
-                          SectionType.rLectioSecunda,
-                          SectionType.rEvangelium,
-                          SectionType.aEpistula,
-                          SectionType.aLectio,
-                          SectionType.aEvangelium,
-                        ];
-                        final dropCap =
-                            dropCapSections.contains(section.name) &&
-                                block ==
-                                    alternative.blocks.firstWhere(
-                                        (el) => el.type == BlockType.Text,
-                                        orElse: () => null);
-                        return BlockWidget(
-                          block: block,
-                          dropCap: dropCap,
-                        );
-                      },
-                    ).toList(),
-                  ),
-                )
-                .toList(),
-          ),
-        )
+        ...data.sections
+            .map((section) => SectionWidget(
+                  section: section,
+                  showAlternativeControl: !globalAlternativeControl,
+                ))
+            .toList(),
       ],
-    );
-  }
-}
-
-class BlockWidget extends StatelessWidget {
-  final Block block;
-  final bool dropCap;
-
-  BlockWidget({Key key, @required this.block, this.dropCap = false})
-      : super(key: key) {
-    if (block.type != BlockType.Text && dropCap) {
-      throw Exception('Only text blocks can have drop cap.');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (block.type == BlockType.Heading) {
-      return Container(
-        padding: EdgeInsets.only(
-          top: (DefaultTextStyle.of(context).style.fontSize ?? 14) * 2,
-          bottom: DefaultTextStyle.of(context).style.fontSize ?? 14,
-        ),
-        child: Text(
-          block.content.toUpperCase(),
-          style: TextStyle(
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: DefaultTextStyle.of(context).style.fontSize ?? 14,
-            fontFamily: 'SF Pro',
-          ),
-        ),
-      );
-    } else if (block.type == BlockType.Space) {
-      return Text('');
-    } else if (block.type == BlockType.Reference) {
-      return Text(
-        block.content,
-        style: TextStyle(
-          fontFamily: 'SF Pro',
-          height: 1.5,
-          color: Theme.of(context).primaryColor,
-        ),
-      );
-    } else {
-      if (dropCap && block.dropCapCompatible) {
-        return DropCapText(
-          block.content.substring(1),
-          style: TextStyle(
-            fontFamily: 'Charter',
-            height: 1.5,
-            fontSize: DefaultTextStyle.of(context).style.fontSize,
-            color: DefaultTextStyle.of(context).style.color,
-          ),
-          dropCap: CustomDropCap(
-            block.content.substring(0, 1),
-            style: TextStyle(
-              fontSize: DefaultTextStyle.of(context).style.fontSize,
-              height: 1.5,
-            ),
-            linesNumber: 3,
-          ),
-          textAlign: TextAlign.justify,
-        );
-      } else {
-        return Text(
-          block.content,
-          style: TextStyle(
-            fontFamily: 'Charter',
-            fontWeight:
-                block.type == BlockType.Emphasis ? FontWeight.bold : null,
-            height: 1.5,
-          ),
-          textAlign: TextAlign.justify,
-        );
-      }
-    }
-  }
-}
-
-class CustomDropCap extends DropCap {
-  final int linesNumber;
-  final TextStyle style;
-  final String letter;
-  CustomDropCap(
-    this.letter, {
-    this.linesNumber = 3,
-    @required this.style,
-  }) : super(
-          height: getHeight(letter, style, linesNumber),
-          width: getWidth(letter, style, linesNumber),
-          child: null,
-        );
-
-  static double getHeight(String letter, TextStyle style, int linesNumber) {
-    return style.fontSize * style.height * linesNumber;
-  }
-
-  static double getWidth(String letter, TextStyle style, int linesNumber) {
-    TextStyle painterStyle = TextStyle(
-      height: 1,
-      fontFamily: 'Charter',
-      fontSize: getFontSize(letter, style, linesNumber),
-    );
-    final tp = TextPainter(
-        textDirection: TextDirection.ltr,
-        text: TextSpan(text: letter, style: painterStyle));
-    tp.layout();
-    print(tp.width);
-    return tp.width;
-  }
-
-  static double getFontSize(String letter, TextStyle style, int linesNumber) {
-    final height = getHeight(letter, style, linesNumber);
-    return height * (letter == 'Q' ? 1 : 1.2);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final fontSize = getFontSize(letter, style, linesNumber);
-    return SizedBox(
-      width: width,
-      height: height,
-      child: OverflowBox(
-        maxHeight: double.infinity,
-        child: Container(
-          transform: Matrix4.translationValues(
-              0.0, fontSize * (letter == 'Q' ? 0 : 0.06), 0.0),
-          child: Text(
-            letter,
-            style: TextStyle(
-              height: 1,
-              fontSize: fontSize,
-              color: Colors.grey[500],
-              fontFamily: 'Charter',
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

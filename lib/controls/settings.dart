@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
-import '../common/dailyreadings_preferences.dart';
 import '../common/enums.dart';
+import '../common/preferences.dart';
 
 class Settings extends StatelessWidget {
   const Settings({Key key}) : super(key: key);
@@ -22,9 +22,8 @@ class Settings extends StatelessWidget {
                 context: context,
                 label: 'Tema',
                 child: RadioSelector<ThemeMode>(
-                  selected: DailyReadingsPreferences.of(context).theme,
-                  onSelect: (value) =>
-                      DailyReadingsPreferences.of(context).theme = value,
+                  selected: Preferences.of(context).theme,
+                  onSelect: (value) => Preferences.of(context).theme = value,
                   valueIcons: {
                     ThemeMode.system: Icon(SFSymbols.gear),
                     ThemeMode.dark: Icon(SFSymbols.moon),
@@ -37,9 +36,8 @@ class Settings extends StatelessWidget {
                 label: 'Rito',
                 child: RadioSelector<Rite>(
                   direction: Axis.vertical,
-                  selected: DailyReadingsPreferences.of(context).rite,
-                  onSelect: (value) =>
-                      DailyReadingsPreferences.of(context).rite = value,
+                  selected: Preferences.of(context).rite,
+                  onSelect: (value) => Preferences.of(context).rite = value,
                   valueIcons: {
                     Rite.roman: Container(
                       padding: EdgeInsets.symmetric(horizontal: 10),
@@ -63,15 +61,11 @@ class Settings extends StatelessWidget {
                     _buildRoundedButton(
                         context: context,
                         child: Icon(SFSymbols.minus),
-                        onTap: () =>
-                            DailyReadingsPreferences.of(context).fontSize -= 2),
+                        onTap: () => Preferences.of(context).fontSize -= 2),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: Text(
-                        DailyReadingsPreferences.of(context)
-                            .fontSize
-                            .round()
-                            .toString(),
+                        Preferences.of(context).fontSize.round().toString(),
                         style: TextStyle(
                           fontSize: 18,
                         ),
@@ -80,8 +74,7 @@ class Settings extends StatelessWidget {
                     _buildRoundedButton(
                         context: context,
                         child: Icon(SFSymbols.plus),
-                        onTap: () =>
-                            DailyReadingsPreferences.of(context).fontSize += 2),
+                        onTap: () => Preferences.of(context).fontSize += 2),
                   ],
                 ),
               ),

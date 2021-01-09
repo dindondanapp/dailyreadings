@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
-import '../common/dailyreadings_preferences.dart';
 import '../common/extensions.dart';
+import '../common/preferences.dart';
 import '../controls/controls_box.dart';
 import '../reader/readings_display.dart';
 import '../readings_repository.dart';
@@ -60,9 +60,9 @@ class _HomeState extends State<Home> {
           repository = ReadingsRepository(
             ReadingsDataIdentifier(
               day: _controlsState.day,
-              rite: DailyReadingsPreferences.of(context).rite,
+              rite: Preferences.of(context).rite,
             ),
-            DailyReadingsPreferences.of(context).rite,
+            Preferences.of(context).rite,
           );
         });
       }
@@ -71,119 +71,129 @@ class _HomeState extends State<Home> {
 
   @override
   void didChangeDependencies() {
-    repository = ReadingsRepository(
-      ReadingsDataIdentifier(
-        day: _controlsState.day,
-        rite: DailyReadingsPreferences.of(context).rite,
-      ),
-      DailyReadingsPreferences.of(context).rite,
-    );
+    // Update status bar brightness and visibility
+    if (true) {
+      SystemChrome.setEnabledSystemUIOverlays([]);
+    } else {
+      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarBrightness: Theme.of(context).brightness,
+          statusBarColor: DefaultTextStyle.of(context).style.color,
+        ),
+      );
+    }
+
+    // Update repository if day or rite changed
+    // TODO: find a more elegant solution that does not require re-creating the
+    // repository
+    if (repository == null ||
+        repository.id.day != _controlsState.day ||
+        repository.id.rite != Preferences.of(context).rite) {
+      repository = ReadingsRepository(
+        ReadingsDataIdentifier(
+          day: _controlsState.day,
+          rite: Preferences.of(context).rite,
+        ),
+        Preferences.of(context).rite,
+      );
+    }
 
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarBrightness: Brightness.light,
-    ));
     return Scaffold(
-      body: _buildReader(),
-    );
-  }
+      body: Stack(
+        children: [
+          ListView(
+            physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
+            controller: scrollController,
+            padding: EdgeInsets.only(
+              left: max(MediaQuery.of(context).padding.left, 15),
+              right: max(MediaQuery.of(context).padding.right, 15),
+              bottom: MediaQuery.of(context).padding.bottom,
+              top: MediaQuery.of(context).padding.top + 15,
+            ),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: 400,
+                    minHeight: controlsBoxSize +
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.bottom -
+                        MediaQuery.of(context).padding.top,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildControlsBoxAndBar(),
+                      DefaultTextStyle.merge(
+                        style: TextStyle(
+                          fontSize: Preferences.of(context).fontSize.toDouble(),
+                        ),
+                        child: StreamBuilder<ReadingsSnapshot>(
+                          stream: repository.readingsStream,
+                          initialData:
+                              ReadingsSnapshot.notDownloaded(repository.id),
+                          builder: (context, snapshot) {
+                            return Container(
+                              padding: EdgeInsets.all(15),
+                              child: AnimatedOpacity(
+                                duration: Duration(milliseconds: 500),
+                                curve: Curves.easeInOut,
+                                opacity: snapshot.connectionState ==
+                                        ConnectionState.waiting
+                                    ? 0.5
+                                    : 1,
+                                child: Builder(builder: (context) {
+                                  if (snapshot.hasError ||
+                                      snapshot.data == null ||
+                                      snapshot.data.state ==
+                                          ReadingsSnapshotState.badFormat) {
+                                    return _buildReadingsError();
+                                  }
+                                  if (snapshot.data.state ==
+                                      ReadingsSnapshotState.downloaded) {
+                                    return ReadingsDisplay(
+                                        data: snapshot.data.data);
+                                  }
 
-  Widget _buildReader() {
-    assert(repository != null);
+                                  if (snapshot.data.state ==
+                                      ReadingsSnapshotState
+                                          .waitingForDownload) {
+                                    return FutureBuilder<Widget>(
+                                        key: Key(snapshot.data.requestedId
+                                            .serialize()),
+                                        future: Future.delayed(
+                                            Duration(
+                                                seconds:
+                                                    15), // TODO: Standard timeouts
+                                            () => _buildReadingsError()),
+                                        initialData: _buildReadingsDownload(),
+                                        builder: (context, snapshot) {
+                                          return snapshot.data;
+                                        });
+                                  }
 
-    return Stack(
-      children: [
-        ListView(
-          physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
-          controller: scrollController,
-          padding: EdgeInsets.only(
-            left: max(MediaQuery.of(context).padding.left, 15),
-            right: max(MediaQuery.of(context).padding.right, 15),
-            bottom: MediaQuery.of(context).padding.bottom,
-            top: MediaQuery.of(context).padding.top + 15,
-          ),
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: 400,
-                  minHeight: controlsBoxSize +
-                      MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.bottom -
-                      MediaQuery.of(context).padding.top,
-                ),
-                child: Column(
-                  children: [
-                    _buildControlsBoxAndBar(),
-                    DefaultTextStyle.merge(
-                      style: TextStyle(
-                        fontSize: DailyReadingsPreferences.of(context)
-                            .fontSize
-                            .toDouble(),
+                                  return _buildReadingsNotAvailable(
+                                      snapshot.data.requestedId);
+                                }),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                      child: StreamBuilder<ReadingsSnapshot>(
-                        stream: repository.readingsStream,
-                        initialData:
-                            ReadingsSnapshot.notDownloaded(repository.id),
-                        builder: (context, snapshot) {
-                          return Container(
-                            padding: EdgeInsets.all(15),
-                            child: AnimatedOpacity(
-                              duration: Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                              opacity: snapshot.connectionState ==
-                                      ConnectionState.waiting
-                                  ? 0.5
-                                  : 1,
-                              child: Builder(builder: (context) {
-                                if (snapshot.hasError ||
-                                    snapshot.data == null ||
-                                    snapshot.data.state ==
-                                        ReadingsSnapshotState.badFormat) {
-                                  return _buildReadingsError();
-                                }
-                                if (snapshot.data.state ==
-                                    ReadingsSnapshotState.downloaded) {
-                                  return ReadingsDisplay(
-                                      data: snapshot.data.data);
-                                }
-
-                                if (snapshot.data.state ==
-                                    ReadingsSnapshotState.waitingForDownload) {
-                                  return FutureBuilder<Widget>(
-                                      key: Key(snapshot.data.requestedId
-                                          .serialize()),
-                                      future: Future.delayed(
-                                          Duration(
-                                              seconds:
-                                                  15), // TODO: Standard timeouts
-                                          () => _buildReadingsError()),
-                                      initialData: _buildReadingsDownload(),
-                                      builder: (context, snapshot) {
-                                        return snapshot.data;
-                                      });
-                                }
-
-                                return _buildReadingsNotAvailable(
-                                    snapshot.data.requestedId);
-                              }),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-        StatusBarBlendCover(),
-      ],
+            ],
+          ),
+          StatusBarBlendCover(),
+        ],
+      ),
     );
   }
 

@@ -27,12 +27,14 @@ class AlternativeControlWidget extends StatelessWidget {
 
   Iterable<Widget> _dividedLabels() sync* {
     int index = 0;
-    labels.iterator.moveNext();
-    yield _buildLabel(index, labels.iterator.current);
-    while (labels.iterator.moveNext()) {
-      index++;
-      yield Text(', ');
-      yield _buildLabel(index, labels.iterator.current);
+    final iterator = labels.iterator;
+    if (iterator.moveNext()) {
+      yield _buildLabel(index, iterator.current);
+      while (iterator.moveNext()) {
+        index++;
+        yield Text(', ');
+        yield _buildLabel(index, iterator.current);
+      }
     }
   }
 
@@ -40,7 +42,7 @@ class AlternativeControlWidget extends StatelessWidget {
     return TextButton(
       onPressed: index == selected ? () {} : () => onSelected(index),
       child: Text(
-        label,
+        label ?? '',
         style: index == selected
             ? TextStyle(
                 decoration: TextDecoration.underline,

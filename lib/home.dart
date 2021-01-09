@@ -143,7 +143,6 @@ class _HomeState extends State<Home> {
                                     snapshot.data == null ||
                                     snapshot.data.state ==
                                         ReadingsSnapshotState.badFormat) {
-                                  print(snapshot.error);
                                   return _buildReadingsError();
                                 }
                                 if (snapshot.data.state ==
@@ -365,7 +364,7 @@ class HomeScrollPhysics extends ScrollPhysics {
         return ScrollSpringSimulation(
             spring, position.pixels, controlsBoxSize, velocity,
             tolerance: tolerance);
-      } else if (position.pixels < position.maxScrollExtent) {
+      } else if (position.pixels < position.maxScrollExtent && velocity != 0) {
         return BoundedFrictionSimulation(0.15, position.pixels, velocity,
             controlsBoxSize, position.maxScrollExtent);
       } else {

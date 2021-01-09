@@ -6,10 +6,10 @@ import 'local_preferences.dart';
 
 /// Provides specific local preferences for the VitaminaV app to descending
 /// widgets
-class DailyReadingsPreferences extends LocalPreferences {
+class Preferences extends LocalPreferences {
   final double defaultFontSize;
   final ThemeMode defaultTheme;
-  DailyReadingsPreferences({
+  Preferences({
     @required this.defaultTheme,
     @required this.defaultFontSize,
     @required Widget child,
@@ -22,9 +22,8 @@ class DailyReadingsPreferences extends LocalPreferences {
           child: child,
         );
 
-  static DailyReadingsPreferences of(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<DailyReadingsPreferences>();
+  static Preferences of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<Preferences>();
   }
 
   /// Global font size for the reader screen

@@ -20,38 +20,18 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  static final double controlsBoxSize = 300;
+  final double controlsBoxSize = 300;
 
   // A repository to access a remote reading. Will be initialized in initState.
   ReadingsRepository repository;
 
   // Controller to handle and manage the scrollview state
-  ScrollController scrollController =
-      ScrollController(initialScrollOffset: controlsBoxSize);
+  ScrollController scrollController;
   ControlsBoxController _controlsState = ControlsBoxController();
 
   @override
   void initState() {
     super.initState();
-
-    // Change controls opacity to only show them when the page is scrolled up
-    scrollController.addListener(() {
-      if (scrollController.offset <= controlsBoxSize * 0.25) {
-        if (_controlsState.boxOpen != BoxOpenState.open) {
-          _controlsState.boxOpen = BoxOpenState.open;
-        }
-      } else if (scrollController.offset < controlsBoxSize * 0.75) {
-        if (_controlsState.boxOpen == BoxOpenState.open) {
-          _controlsState.boxOpen = BoxOpenState.closing;
-        } else if (_controlsState.boxOpen == BoxOpenState.closed) {
-          _controlsState.boxOpen = BoxOpenState.opening;
-        }
-      } else {
-        if (_controlsState.boxOpen != BoxOpenState.closed) {
-          _controlsState.boxOpen = BoxOpenState.closed;
-        }
-      }
-    });
 
     // Listen to calendar selection
     _controlsState.addListener(() {
@@ -84,6 +64,28 @@ class _HomeState extends State<Home> {
       );
     }
 
+    // Update scroll controller
+    scrollController = ScrollController(initialScrollOffset: controlsBoxSize);
+
+    // Change controls opacity to only show them when the page is scrolled up
+    scrollController.addListener(() {
+      if (scrollController.offset <= controlsBoxSize * 0.25) {
+        if (_controlsState.boxOpen != BoxOpenState.open) {
+          _controlsState.boxOpen = BoxOpenState.open;
+        }
+      } else if (scrollController.offset < controlsBoxSize * 0.75) {
+        if (_controlsState.boxOpen == BoxOpenState.open) {
+          _controlsState.boxOpen = BoxOpenState.closing;
+        } else if (_controlsState.boxOpen == BoxOpenState.closed) {
+          _controlsState.boxOpen = BoxOpenState.opening;
+        }
+      } else {
+        if (_controlsState.boxOpen != BoxOpenState.closed) {
+          _controlsState.boxOpen = BoxOpenState.closed;
+        }
+      }
+    });
+
     // Update repository if day or rite changed
     // TODO: find a more elegant solution that does not require re-creating the
     // repository
@@ -108,7 +110,7 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: [
           ListView(
-            physics: HomeScrollPhysics(controlsBoxSize: controlsBoxSize),
+            physics: HomeScrollPhysics(bound: controlsBoxSize + 15),
             controller: scrollController,
             padding: EdgeInsets.only(
               left: max(MediaQuery.of(context).padding.left, 15),

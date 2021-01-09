@@ -41,10 +41,12 @@ class ControlsBox extends StatelessWidget {
         child: ValueListenableBuilder(
             valueListenable: controller,
             builder: (context, value, widget) {
-              final color = controller.boxOpen == BoxOpenState.open ||
-                      controller.boxOpen == BoxOpenState.opening
+              final isOpen = controller.boxOpen == BoxOpenState.open ||
+                  controller.boxOpen == BoxOpenState.opening;
+              final color = isOpen
                   ? Theme.of(context).backgroundColor
                   : Theme.of(context).backgroundColor.withAlpha(0);
+              final opacity = isOpen ? 1.0 : 0.0;
               return ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: AnimatedContainer(
@@ -53,9 +55,17 @@ class ControlsBox extends StatelessWidget {
                   color: color,
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: size,
-                        child: _buildChildForSelection(),
+                      AnimatedOpacity(
+                        opacity: opacity,
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.ease,
+                        child: SizedBox(
+                          height: size,
+                          child: IgnorePointer(
+                            ignoring: !isOpen,
+                            child: _buildChildForSelection(),
+                          ),
+                        ),
                       ),
                       ControlsBar(
                         date: controller.day,

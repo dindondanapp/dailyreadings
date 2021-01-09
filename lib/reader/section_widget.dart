@@ -38,50 +38,64 @@ class _SectionWidgetState extends State<SectionWidget> {
         .toList();
   }
 
+  bool get canHaveDropCap {
+    const dropCapSections = [
+      SectionType.rLectioPrima,
+      SectionType.rLectioSecunda,
+      SectionType.rEvangelium,
+      SectionType.aEpistula,
+      SectionType.aLectio,
+      SectionType.aEvangelium,
+    ];
+    return dropCapSections.contains(widget.section.name);
+  }
+
   @override
   Widget build(BuildContext context) {
     final labels =
         widget.globalAlternativeController == null ? getLabels() : null;
+
     return ValueListenableBuilder<int>(
       valueListenable: alternativeController,
-      builder: (BuildContext context, int index, Widget _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          labels != null && labels.length >= 2
-              ? AlternativeControlWidget(
-                  labels: labels,
-                  selected: index,
-                  onSelected: (int selected) =>
-                      alternativeController.value = selected,
-                )
-              : Container(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: widget.section.alternatives[index].blocks.map(
-              (block) {
-                const dropCapSections = [
-                  SectionType.rLectioPrima,
-                  SectionType.rLectioSecunda,
-                  SectionType.rEvangelium,
-                  SectionType.aEpistula,
-                  SectionType.aLectio,
-                  SectionType.aEvangelium,
-                ];
-                final dropCap = dropCapSections.contains(widget.section.name) &&
-                    block ==
-                        widget.section.alternatives[index].blocks.firstWhere(
-                            (el) => el.type == BlockType.Text,
-                            orElse: () => null);
-                return BlockWidget(
-                  block: block,
-                  dropCap: dropCap,
-                );
-              },
-            ).toList(),
-          )
-        ],
-      ),
+      builder: (BuildContext context, int index, Widget _) {
+        final blocks = widget.section.alternatives[index].blocks;
+        final dropCapBlock = canHaveDropCap
+            ? blocks.firstWhere((el) => el.type == BlockType.Text,
+                orElse: () => null)
+            : null;
+        final List<Widget> blockWidgets =
+            _buildBlockWidgets(blocks, dropCapBlock);
+        if (labels != null && labels.length >= 2) {
+          final alternativeControl = AlternativeControlWidget(
+            labels: labels,
+            selected: index,
+            onSelected: (int selected) =>
+                alternativeController.value = selected,
+          );
+          if (blocks.first.type == BlockType.Heading) {
+            blockWidgets.insert(1, alternativeControl);
+          } else {
+            blockWidgets.insert(0, alternativeControl);
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: blockWidgets,
+        );
+      },
     );
+  }
+
+  List<Widget> _buildBlockWidgets(List<Block> blocks, Block dropCapBlock) {
+    return blocks.map<Widget>(
+      (block) {
+        return BlockWidget(
+          block: block,
+          dropCap: block == dropCapBlock,
+        );
+      },
+    ).toList();
   }
 
   @override

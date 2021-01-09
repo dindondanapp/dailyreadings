@@ -1,15 +1,16 @@
 import 'dart:math';
 
+import 'package:dailyreadings/home/statusbar_blend_cover.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
-import 'common/dailyreadings_preferences.dart';
-import 'common/extensions.dart';
-import 'controls/controls_box.dart';
-import 'reader/readings_display.dart';
-import 'readings_repository.dart';
+import '../common/dailyreadings_preferences.dart';
+import '../common/extensions.dart';
+import '../controls/controls_box.dart';
+import '../reader/readings_display.dart';
+import '../readings_repository.dart';
+import 'home_scroll_physics.dart';
 
 /// Main widget, that contains all the dynamic content of the app
 class Home extends StatefulWidget {
@@ -301,78 +302,4 @@ class _HomeState extends State<Home> {
     _controlsState.dispose();
     super.dispose();
   }
-}
-
-/// Just a simple widget that creates a soft gradient between the status bar and the scrollable content
-class StatusBarBlendCover extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // Status bar height
-    final paddingTop = MediaQuery.of(context).padding.top;
-
-    // How much it should extend below the status bar
-    final offset = 20;
-
-    // Where the gradient should start with respect to the end of the status bar
-    final gradientStartOffset = -10;
-
-    return IgnorePointer(
-      // No gesture interaction
-      child: Container(
-        height: paddingTop + offset,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment(
-                0,
-                (paddingTop + gradientStartOffset) / (paddingTop + offset) * 2 -
-                    1),
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).scaffoldBackgroundColor.withAlpha(0),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class HomeScrollPhysics extends ScrollPhysics {
-  final double controlsBoxSize;
-  const HomeScrollPhysics(
-      {@required this.controlsBoxSize, ScrollPhysics parent})
-      : super(parent: parent);
-
-  @override
-  HomeScrollPhysics applyTo(ScrollPhysics ancestor) {
-    return HomeScrollPhysics(
-        controlsBoxSize: controlsBoxSize, parent: buildParent(ancestor));
-  }
-
-  @override
-  Simulation createBallisticSimulation(
-      ScrollMetrics position, double velocity) {
-    if ([0, controlsBoxSize].contains(position.pixels) && velocity == 0) {
-      return super.createBallisticSimulation(position, velocity);
-    } else {
-      if (position.pixels < controlsBoxSize / 2) {
-        return ScrollSpringSimulation(spring, position.pixels, 0, velocity,
-            tolerance: tolerance);
-      } else if (position.pixels >= controlsBoxSize / 2 &&
-          position.pixels < controlsBoxSize) {
-        return ScrollSpringSimulation(
-            spring, position.pixels, controlsBoxSize, velocity,
-            tolerance: tolerance);
-      } else if (position.pixels < position.maxScrollExtent && velocity != 0) {
-        return BoundedFrictionSimulation(0.15, position.pixels, velocity,
-            controlsBoxSize, position.maxScrollExtent);
-      } else {
-        return super.createBallisticSimulation(position, velocity);
-      }
-    }
-  }
-
-  @override
-  bool get allowImplicitScrolling => false;
 }

@@ -42,7 +42,6 @@ class _SectionWidgetState extends State<SectionWidget> {
   Widget build(BuildContext context) {
     final labels =
         widget.globalAlternativeController == null ? getLabels() : null;
-    print(labels.join(', '));
     return ValueListenableBuilder<int>(
       valueListenable: alternativeController,
       builder: (BuildContext context, int index, Widget _) => Column(

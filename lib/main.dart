@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'common/dailyreadings_preferences.dart';
 import 'common/extensions.dart';
 import 'common/palette.dart';
-import 'home.dart';
+import 'home/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

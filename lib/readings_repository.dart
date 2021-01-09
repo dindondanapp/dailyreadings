@@ -2,26 +2,51 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import 'common/enums.dart';
 import 'common/extensions.dart';
 
 /// An object that handles data sourcing for the readings
 class ReadingsRepository {
-  final ReadingsDataIdentifier id;
-  final Rite rite;
+  ReadingsDataIdentifier _id;
+  ReadingsDataIdentifier get id => _id;
 
-  /// Creates an object that handles data sourcing from Firebase Cloud
-  /// Firestore, for the given [ReadingsDataIdentifier]
-  ReadingsRepository(this.id, this.rite)
-      : readingsStream = getReadingsStream(id),
-        calendarInterval = getCalendarIntervalStream(rite);
+  static final readingsStreamController = StreamController<ReadingsSnapshot>();
+  static final calendarIntervalStreamController =
+      StreamController<DayInterval>();
 
   /// A stream of [ReadingsData] objects
   final Stream<ReadingsSnapshot> readingsStream;
-  final Stream<DayInterval> calendarInterval;
 
-  /// Creates a broadcast [Stream] of [ReadingsData] objects from the remote
+  /// A stream of [DayInterval] objects
+  final Stream<DayInterval> calendarIntervalStream;
+
+  /// Creates an object that handles data sourcing from Firebase Cloud
+  /// Firestore, for the given [ReadingsDataIdentifier]
+  ReadingsRepository([ReadingsDataIdentifier id])
+      : readingsStream = readingsStreamController.stream,
+        calendarIntervalStream = calendarIntervalStreamController.stream {
+    if (id != null) {
+      this.id = id;
+    }
+  }
+
+  set id(ReadingsDataIdentifier value) {
+    if (this.id == null ||
+        value.day != this.id.day ||
+        value.rite != this.id.rite) {
+      getReadingsStream(value)
+          .listen((snapshot) => readingsStreamController.add(snapshot));
+    }
+    if (this.id == null || value.day != this.id.day) {
+      //getCalendarIntervalStream(value.rite).listen((snapshot) => calendarIntervalStreamController.add(snapshot));
+    }
+
+    this._id = value;
+  }
+
+  /// Creates [Stream] of [ReadingsData] objects from the remote
   /// repository for the given [day]
   static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
     return FirebaseFirestore.instance
@@ -38,7 +63,7 @@ class ReadingsRepository {
           return ReadingsSnapshot.nonExistent(id);
         }
       }
-    }).asBroadcastStream();
+    });
   }
 
   /// Creates a broadcast [Stream] of [DayInterval] that describes the dates of
@@ -59,6 +84,11 @@ class ReadingsRepository {
         return DayInterval();
       }
     });
+  }
+
+  void dispose() {
+    readingsStreamController.close();
+    calendarIntervalStreamController.close();
   }
 }
 

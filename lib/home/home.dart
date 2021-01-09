@@ -23,7 +23,7 @@ class _HomeState extends State<Home> {
   final double controlsBoxSize = 300;
 
   // A repository to access a remote reading. Will be initialized in initState.
-  ReadingsRepository repository;
+  ReadingsRepository repository = ReadingsRepository();
 
   // Controller to handle and manage the scrollview state
   ScrollController scrollController;
@@ -33,34 +33,25 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
 
-    // Listen to calendar selection
-    _controlsState.addListener(() {
-      if (_controlsState.day != repository.id.day) {
-        setState(() {
-          repository = ReadingsRepository(
-            ReadingsDataIdentifier(
-              day: _controlsState.day,
-              rite: Preferences.of(context).rite,
-            ),
-            Preferences.of(context).rite,
-          );
-        });
-      }
-    });
+    // Update repository when the control state changes, as the date may have
+    // changed
+    _controlsState.addListener(
+      () => repository.id = ReadingsDataIdentifier(
+        day: _controlsState.day,
+        rite: Preferences.of(context).rite,
+      ),
+    );
   }
 
   @override
   void didChangeDependencies() {
     // Update status bar brightness and visibility
     if (Preferences.of(context).fullscreen) {
-      SystemChrome.setEnabledSystemUIOverlays([]);
+      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
     } else {
       SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
       SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
-          statusBarBrightness: Theme.of(context).brightness,
-          statusBarColor: DefaultTextStyle.of(context).style.color,
-        ),
+        SystemUiOverlayStyle(statusBarBrightness: Theme.of(context).brightness),
       );
     }
 
@@ -86,20 +77,11 @@ class _HomeState extends State<Home> {
       }
     });
 
-    // Update repository if day or rite changed
-    // TODO: find a more elegant solution that does not require re-creating the
-    // repository
-    if (repository == null ||
-        repository.id.day != _controlsState.day ||
-        repository.id.rite != Preferences.of(context).rite) {
-      repository = ReadingsRepository(
-        ReadingsDataIdentifier(
-          day: _controlsState.day,
-          rite: Preferences.of(context).rite,
-        ),
-        Preferences.of(context).rite,
-      );
-    }
+    // Update repository, as the rite may have changed
+    repository.id = ReadingsDataIdentifier(
+      day: _controlsState.day,
+      rite: Preferences.of(context).rite,
+    );
 
     super.didChangeDependencies();
   }
@@ -314,6 +296,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _controlsState.dispose();
+    repository.dispose();
     super.dispose();
   }
 }

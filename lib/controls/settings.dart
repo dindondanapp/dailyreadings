@@ -14,7 +14,7 @@ class Settings extends StatelessWidget {
         child: SizedBox(
           width: 335,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,
             children: [
               _buildSettingsRow(
@@ -40,12 +40,12 @@ class Settings extends StatelessWidget {
                       Preferences.of(context).fullscreen = value,
                   valueIcons: {
                     false: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 5),
                       child: Text('Mostra',
                           style: DefaultTextStyle.of(context).style),
                     ),
                     true: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 5),
                       child: Text('Nascondi',
                           style: DefaultTextStyle.of(context).style),
                     ),
@@ -63,7 +63,7 @@ class Settings extends StatelessWidget {
                         child: Icon(SFSymbols.minus),
                         onTap: () => Preferences.of(context).fontSize -= 2),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Text(
                         Preferences.of(context).fontSize.round().toString(),
                         style: TextStyle(
@@ -87,12 +87,12 @@ class Settings extends StatelessWidget {
                   onSelect: (value) => Preferences.of(context).rite = value,
                   valueIcons: {
                     Rite.roman: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 5),
                       child: Text('Romano',
                           style: DefaultTextStyle.of(context).style),
                     ),
                     Rite.ambrosian: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      padding: EdgeInsets.symmetric(horizontal: 5),
                       child: Text('Ambrosiano',
                           style: DefaultTextStyle.of(context).style),
                     ),
@@ -128,7 +128,13 @@ class Settings extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(child: child),
+          Expanded(
+            child: SingleChildScrollView(
+              child: child,
+              scrollDirection: Axis.horizontal,
+              reverse: true,
+            ),
+          ),
         ],
       ),
     );
@@ -195,9 +201,9 @@ Widget _buildRoundedButton({
         child: InkWell(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: 50,
-              minHeight: 50,
-              minWidth: 50,
+              maxHeight: 40,
+              minHeight: 40,
+              minWidth: 40,
             ),
             child: Container(
               child: Center(
@@ -205,7 +211,8 @@ Widget _buildRoundedButton({
                   child: IconTheme(
                     child: child,
                     data: IconThemeData(
-                        color: DefaultTextStyle.of(context).style.color),
+                        color: DefaultTextStyle.of(context).style.color,
+                        size: 20),
                   ),
                   style: TextStyle(
                     fontSize: 16,

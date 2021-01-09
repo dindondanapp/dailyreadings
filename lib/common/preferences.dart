@@ -9,14 +9,17 @@ import 'local_preferences.dart';
 class Preferences extends LocalPreferences {
   final double defaultFontSize;
   final ThemeMode defaultTheme;
+  final bool defaultFullscreen;
   Preferences({
     @required this.defaultTheme,
     @required this.defaultFontSize,
+    @required this.defaultFullscreen,
     @required Widget child,
   }) : super(
           defaultPrefs: {
             'font_size': defaultFontSize,
             'theme': defaultTheme.enumSerialize(),
+            'fullscreen': defaultFullscreen,
             'first_time': false,
           },
           child: child,
@@ -49,6 +52,10 @@ class Preferences extends LocalPreferences {
   }
 
   set theme(ThemeMode value) => set('theme', value.enumSerialize());
+
+  /// Full screen
+  bool get fullscreen => get('fullscreen');
+  set fullscreen(bool value) => set('fullscreen', value);
 
   /// First open
   bool get firstTime => get('first_time');

@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
     return Preferences(
       defaultFontSize: 14.0,
       defaultTheme: ThemeMode.system,
+      defaultFullscreen: false,
       child: Builder(
         builder: (context) => _buildApp(context),
       ),

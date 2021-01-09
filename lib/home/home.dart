@@ -72,7 +72,7 @@ class _HomeState extends State<Home> {
   @override
   void didChangeDependencies() {
     // Update status bar brightness and visibility
-    if (true) {
+    if (Preferences.of(context).fullscreen) {
       SystemChrome.setEnabledSystemUIOverlays([]);
     } else {
       SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
@@ -191,7 +191,9 @@ class _HomeState extends State<Home> {
               ),
             ],
           ),
-          StatusBarBlendCover(),
+          Preferences.of(context).fullscreen
+              ? Container()
+              : StatusBarBlendCover(),
         ],
       ),
     );

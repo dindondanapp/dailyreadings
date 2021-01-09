@@ -109,7 +109,6 @@ class CustomDropCap extends DropCap {
         textDirection: TextDirection.ltr,
         text: TextSpan(text: letter, style: painterStyle));
     tp.layout();
-    print(tp.width);
     return tp.width;
   }
 

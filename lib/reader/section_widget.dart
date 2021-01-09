@@ -66,7 +66,7 @@ class _SectionWidgetState extends State<SectionWidget> {
         final List<Widget> blockWidgets =
             _buildBlockWidgets(blocks, dropCapBlock);
         if (labels != null && labels.length >= 2) {
-          final alternativeControl = AlternativeControlWidget(
+          final alternativeControl = AlternativeSelectionBar(
             labels: labels,
             selected: index,
             onSelected: (int selected) =>

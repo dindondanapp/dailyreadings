@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../common/extensions.dart';
 
-class AlternativeControlWidget extends StatelessWidget {
+class AlternativeSelectionBar extends StatelessWidget {
   final List<String> labels;
   final int _selected;
   final void Function(int selected) onSelected;
   int get selected => _selected.sat(lower: 0, upper: labels.length - 1);
 
-  AlternativeControlWidget(
+  AlternativeSelectionBar(
       {Key key, @required this.labels, selected = 0, @required this.onSelected})
       : this._selected = selected,
         super(key: key) {

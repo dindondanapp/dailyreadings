@@ -55,7 +55,7 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         useGlobalAlternativeController
-            ? AlternativeControlWidget(
+            ? AlternativeSelectionBar(
                 labels: globalAlternativeLabels,
                 onSelected: (int index) =>
                     globalAlternativeController.value = index,

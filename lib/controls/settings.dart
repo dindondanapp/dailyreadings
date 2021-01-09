@@ -12,7 +12,7 @@ class Settings extends StatelessWidget {
     return Padding(
         padding: EdgeInsets.all(10),
         child: SizedBox(
-          width: 260,
+          width: 335,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.max,
@@ -33,20 +33,20 @@ class Settings extends StatelessWidget {
               ),
               _buildSettingsRow(
                 context: context,
-                label: 'Rito',
-                child: RadioSelector<Rite>(
-                  direction: Axis.vertical,
-                  selected: Preferences.of(context).rite,
-                  onSelect: (value) => Preferences.of(context).rite = value,
+                label: 'Barra\ndi stato',
+                child: RadioSelector<bool>(
+                  selected: Preferences.of(context).fullscreen,
+                  onSelect: (value) =>
+                      Preferences.of(context).fullscreen = value,
                   valueIcons: {
-                    Rite.roman: Container(
+                    false: Container(
                       padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text('Romano',
+                      child: Text('Mostra',
                           style: DefaultTextStyle.of(context).style),
                     ),
-                    Rite.ambrosian: Container(
+                    true: Container(
                       padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text('Ambrosiano',
+                      child: Text('Nascondi',
                           style: DefaultTextStyle.of(context).style),
                     ),
                   },
@@ -56,7 +56,7 @@ class Settings extends StatelessWidget {
                 context: context,
                 label: 'Testo',
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     _buildRoundedButton(
                         context: context,
@@ -78,6 +78,27 @@ class Settings extends StatelessWidget {
                   ],
                 ),
               ),
+              _buildSettingsRow(
+                context: context,
+                label: 'Rito',
+                child: RadioSelector<Rite>(
+                  direction: Axis.horizontal,
+                  selected: Preferences.of(context).rite,
+                  onSelect: (value) => Preferences.of(context).rite = value,
+                  valueIcons: {
+                    Rite.roman: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text('Romano',
+                          style: DefaultTextStyle.of(context).style),
+                    ),
+                    Rite.ambrosian: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text('Ambrosiano',
+                          style: DefaultTextStyle.of(context).style),
+                    ),
+                  },
+                ),
+              ),
             ],
           ),
         ));
@@ -94,12 +115,10 @@ class Settings extends StatelessWidget {
           ? null
           : BoxDecoration(
               border: Border(top: BorderSide(color: Colors.grey[400]))),
-      padding: EdgeInsets.symmetric(vertical: 5),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisSize: MainAxisSize.max,
         children: [
           Container(
-            padding: EdgeInsets.only(left: 25),
             width: 80,
             child: Text(
               label,
@@ -149,7 +168,7 @@ class RadioSelector<T> extends StatelessWidget {
         .toList();
     return (direction == Axis.horizontal)
         ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: children,
           )
         : Column(

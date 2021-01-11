@@ -2,6 +2,7 @@ import 'package:dailyreadings/common/enums.dart';
 import 'package:dailyreadings/reader/alternative_control_widget.dart';
 import 'package:flutter/material.dart';
 
+import '../common/extensions.dart';
 import 'block_widget.dart';
 
 class SectionWidget extends StatefulWidget {
@@ -19,9 +20,9 @@ class _SectionWidgetState extends State<SectionWidget> {
   AlternativeController alternativeController;
   @override
   void initState() {
+    print('State initialized');
     alternativeController =
         widget.globalAlternativeController ?? AlternativeController();
-
     super.initState();
   }
 
@@ -58,7 +59,9 @@ class _SectionWidgetState extends State<SectionWidget> {
     return ValueListenableBuilder<int>(
       valueListenable: alternativeController,
       builder: (BuildContext context, int index, Widget _) {
-        final blocks = widget.section.alternatives[index].blocks;
+        final satIndex =
+            index.sat(lower: 0, upper: widget.section.alternatives.length - 1);
+        final blocks = widget.section.alternatives[satIndex].blocks;
         final dropCapBlock = canHaveDropCap
             ? blocks.firstWhere((el) => el.type == BlockType.Text,
                 orElse: () => null)
@@ -68,7 +71,7 @@ class _SectionWidgetState extends State<SectionWidget> {
         if (labels != null && labels.length >= 2) {
           final alternativeControl = AlternativeSelectionBar(
             labels: labels,
-            selected: index,
+            selected: satIndex,
             onSelected: (int selected) =>
                 alternativeController.value = selected,
           );

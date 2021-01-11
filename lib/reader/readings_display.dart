@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:dailyreadings/reader/alternative_control_widget.dart';
 import 'package:dailyreadings/reader/section_widget.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ class ReadingsDisplay extends StatefulWidget {
 }
 
 class _ReadingsDisplayState extends State<ReadingsDisplay> {
-  final globalAlternativeController = AlternativeController();
+  AlternativeController globalAlternativeController;
 
   /// Get the labels for alternative versions of the whole set of readings, if
   /// they exist. This happens when all the sections with alternatives have
@@ -30,10 +31,11 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
           (section) {
             final hasLabels = section.alternatives.every(
                 (element) => element.label != null && element.label != '');
-
-            final hasSameLabelsAsFirst = section.alternatives
-                    .map((e) => e.label) ==
-                sectionsWithAlternatives.first.alternatives.map((e) => e.label);
+            final hasSameLabelsAsFirst = ListEquality().equals(
+                section.alternatives.map((e) => e.label).toList(),
+                sectionsWithAlternatives.first.alternatives
+                    .map((e) => e.label)
+                    .toList());
             return hasLabels && hasSameLabelsAsFirst;
           },
         )) {
@@ -46,21 +48,24 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
   }
 
   @override
+  void didChangeDependencies() {
+    globalAlternativeController = AlternativeController();
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final globalAlternativeLabels = getGlobalAlternatives();
     final useGlobalAlternativeController = globalAlternativeLabels != null;
+
+    if (useGlobalAlternativeController) {
+      print('Drawing with global alternatives');
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        useGlobalAlternativeController
-            ? AlternativeSelectionBar(
-                labels: globalAlternativeLabels,
-                onSelected: (int index) =>
-                    globalAlternativeController.value = index,
-              )
-            : Container(),
         Container(
           padding: EdgeInsets.only(
               bottom: DefaultTextStyle.of(context).style.fontSize),
@@ -83,6 +88,18 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
             ],
           ),
         ),
+        useGlobalAlternativeController
+            ? ValueListenableBuilder<int>(
+                valueListenable: globalAlternativeController,
+                builder: (context, index, widget) {
+                  return AlternativeSelectionBar(
+                    labels: globalAlternativeLabels,
+                    selected: index,
+                    onSelected: (int index) =>
+                        globalAlternativeController.value = index,
+                  );
+                })
+            : Container(),
         ...widget.data.sections
             .map((section) => SectionWidget(
                   section: section,

@@ -141,7 +141,13 @@ class _HomeState extends State<Home> {
                                   if (snapshot.data.state ==
                                       ReadingsSnapshotState.downloaded) {
                                     return ReadingsDisplay(
-                                        data: snapshot.data.data);
+                                      data: snapshot.data.data,
+                                      // The key ensures that the states of the
+                                      // widgets that constitute the reader are
+                                      // not preserved across different readings
+                                      key: Key(snapshot.data.requestedId
+                                          .serialize()),
+                                    );
                                   }
 
                                   if (snapshot.data.state ==

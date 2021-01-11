@@ -58,6 +58,10 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
     final globalAlternativeLabels = getGlobalAlternatives();
     final useGlobalAlternativeController = globalAlternativeLabels != null;
 
+    if (useGlobalAlternativeController) {
+      print('Drawing with global alternatives');
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.start,

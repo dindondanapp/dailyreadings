@@ -1,9 +1,9 @@
 import 'dart:math';
 
+import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:dailyreadings/home/statusbar_blend_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import '../common/extensions.dart';
 import '../common/preferences.dart';
@@ -200,7 +200,7 @@ class _HomeState extends State<Home> {
         children: [
           SizedBox(height: 50),
           Icon(
-            SFSymbols.clock,
+            PlatformIcons.wait,
             size: 50,
             color: Colors.grey,
           ),
@@ -226,7 +226,7 @@ class _HomeState extends State<Home> {
         children: [
           SizedBox(height: 50),
           Icon(
-            SFSymbols.exclamationmark_circle,
+            PlatformIcons.error,
             size: 50,
             color: Colors.grey,
           ),
@@ -251,7 +251,7 @@ class _HomeState extends State<Home> {
         children: [
           SizedBox(height: 50),
           Icon(
-            SFSymbols.cloud_download,
+            PlatformIcons.downloaad,
             size: 50,
             color: Colors.grey,
           ),

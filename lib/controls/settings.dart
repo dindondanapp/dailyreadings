@@ -1,5 +1,5 @@
+import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import '../common/enums.dart';
 import '../common/preferences.dart';
@@ -25,9 +25,9 @@ class Settings extends StatelessWidget {
                   selected: Preferences.of(context).theme,
                   onSelect: (value) => Preferences.of(context).theme = value,
                   valueIcons: {
-                    ThemeMode.system: Icon(SFSymbols.gear),
-                    ThemeMode.dark: Icon(SFSymbols.moon),
-                    ThemeMode.light: Icon(SFSymbols.sun_max),
+                    ThemeMode.system: Icon(PlatformIcons.settings),
+                    ThemeMode.dark: Icon(PlatformIcons.moon),
+                    ThemeMode.light: Icon(PlatformIcons.sun),
                   },
                 ),
               ),
@@ -60,7 +60,7 @@ class Settings extends StatelessWidget {
                   children: [
                     _buildRoundedButton(
                         context: context,
-                        child: Icon(SFSymbols.minus),
+                        child: Icon(PlatformIcons.minus),
                         onTap: () => Preferences.of(context).fontSize -= 2),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 15),
@@ -73,7 +73,7 @@ class Settings extends StatelessWidget {
                     ),
                     _buildRoundedButton(
                         context: context,
-                        child: Icon(SFSymbols.plus),
+                        child: Icon(PlatformIcons.plus),
                         onTap: () => Preferences.of(context).fontSize += 2),
                   ],
                 ),

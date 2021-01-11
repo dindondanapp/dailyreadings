@@ -1,5 +1,5 @@
+import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sfsymbols/flutter_sfsymbols.dart';
 
 import '../common/extensions.dart';
 import 'controls_box.dart';
@@ -26,7 +26,7 @@ class ControlsBar extends StatelessWidget {
         children: [
           _buildButton(
             context: context,
-            icon: SFSymbols.calendar,
+            icon: PlatformIcons.calendar,
             label:
                 (date ?? DateTime.now()).toLocaleDateString(withWeekday: true),
             selected: controller.selection == ControlsBoxSelection.calendar,
@@ -34,7 +34,7 @@ class ControlsBar extends StatelessWidget {
           ),
           _buildButton(
             context: context,
-            icon: SFSymbols.gear,
+            icon: PlatformIcons.settings,
             onTap: onSettingsTap,
             selected: controller.selection == ControlsBoxSelection.settings,
           ),

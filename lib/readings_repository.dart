@@ -38,9 +38,8 @@ class ReadingsRepository {
         value.rite != this.id.rite) {
       getReadingsStream(value)
           .listen((snapshot) => readingsStreamController.add(snapshot));
-    }
-    if (this.id == null || value.day != this.id.day) {
-      //getCalendarIntervalStream(value.rite).listen((snapshot) => calendarIntervalStreamController.add(snapshot));
+      getCalendarIntervalStream(value.rite)
+          .listen((snapshot) => calendarIntervalStreamController.add(snapshot));
     }
 
     this._id = value;
@@ -75,13 +74,16 @@ class ReadingsRepository {
         .snapshots()
         .map<DayInterval>((event) {
       try {
-        final Map<String, Timestamp> intervalMap =
-            event.get('availableIntervals')[rite.enumSerialize()];
+        final Map<String, dynamic> availableIntervals =
+            event.get('availableIntervals');
+        final Map<String, dynamic> intervalMap =
+            availableIntervals[rite.enumSerialize()];
         return DayInterval(
-            start: intervalMap['start'].toDate(),
-            end: intervalMap['end'].toDate());
+          start: Day.fromDateTime((intervalMap['start'] as Timestamp).toDate()),
+          end: Day.fromDateTime((intervalMap['end'] as Timestamp).toDate()),
+        );
       } catch (e) {
-        return DayInterval();
+        return DayInterval.none();
       }
     });
   }

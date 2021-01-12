@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../common/extensions.dart';
 import '../common/preferences.dart';
 import '../controls/controls_box.dart';
+import '../controls/controls_box_controller.dart';
 import '../reader/readings_display.dart';
 import '../readings_repository.dart';
 import 'home_scroll_physics.dart';
@@ -26,7 +27,9 @@ class _HomeState extends State<Home> {
   ReadingsRepository repository = ReadingsRepository();
 
   // Controller to handle and manage the scrollview state
-  ScrollController scrollController;
+  ScrollController _scrollController;
+
+  // Controller to handle the controls box state
   ControlsBoxController _controlsState = ControlsBoxController();
 
   @override
@@ -56,15 +59,15 @@ class _HomeState extends State<Home> {
     }
 
     // Update scroll controller
-    scrollController = ScrollController(initialScrollOffset: controlsBoxSize);
+    _scrollController = ScrollController(initialScrollOffset: controlsBoxSize);
 
     // Change controls opacity to only show them when the page is scrolled up
-    scrollController.addListener(() {
-      if (scrollController.offset <= controlsBoxSize * 0.25) {
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= controlsBoxSize * 0.25) {
         if (_controlsState.boxOpen != BoxOpenState.open) {
           _controlsState.boxOpen = BoxOpenState.open;
         }
-      } else if (scrollController.offset < controlsBoxSize * 0.75) {
+      } else if (_scrollController.offset < controlsBoxSize * 0.75) {
         if (_controlsState.boxOpen == BoxOpenState.open) {
           _controlsState.boxOpen = BoxOpenState.closing;
         } else if (_controlsState.boxOpen == BoxOpenState.closed) {
@@ -93,7 +96,7 @@ class _HomeState extends State<Home> {
         children: [
           ListView(
             physics: HomeScrollPhysics(bound: controlsBoxSize + 15),
-            controller: scrollController,
+            controller: _scrollController,
             padding: EdgeInsets.only(
               left: max(MediaQuery.of(context).padding.left, 15),
               right: max(MediaQuery.of(context).padding.right, 15),
@@ -190,12 +193,18 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildControlsBoxAndBar() {
-    return ControlsBox(
-      controller: _controlsState,
-      size: controlsBoxSize,
-      onCalendarTap: onCalendarTap,
-      onSettingsTap: onSettingsTap,
-    );
+    return StreamBuilder<DayInterval>(
+        stream: repository.calendarIntervalStream,
+        initialData: DayInterval.none(),
+        builder: (context, snapshot) {
+          return ControlsBox(
+            controller: _controlsState,
+            size: controlsBoxSize,
+            onCalendarTap: onCalendarTap,
+            onSettingsTap: onSettingsTap,
+            availableInterval: snapshot.data,
+          );
+        });
   }
 
   Widget _buildReadingsNotAvailable(ReadingsDataIdentifier id) {
@@ -278,11 +287,11 @@ class _HomeState extends State<Home> {
   void onCalendarTap() {
     if (_controlsState.selection == ControlsBoxSelection.calendar &&
         _controlsState.boxOpen != BoxOpenState.closed) {
-      scrollController.animateTo(controlsBoxSize,
+      _scrollController.animateTo(controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.calendar;
-      scrollController.animateTo(0,
+      _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     }
   }
@@ -290,11 +299,11 @@ class _HomeState extends State<Home> {
   void onSettingsTap() {
     if (_controlsState.selection == ControlsBoxSelection.settings &&
         _controlsState.boxOpen != BoxOpenState.closed) {
-      scrollController.animateTo(controlsBoxSize,
+      _scrollController.animateTo(controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.settings;
-      scrollController.animateTo(0,
+      _scrollController.animateTo(0,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     }
   }

@@ -6,13 +6,18 @@ import '../common/extensions.dart';
 /// A widget that displays a calendar and allows to select a day
 class Calendar extends StatefulWidget {
   final Day selectedDay;
+  final DayInterval availableInterval;
   final void Function(Day day) onSelect;
 
   /// Creates a Calendar widget
   /// A selected [day] must be provided and an [onSelect] function can be used
   /// to listen to day selection
-  Calendar({Key key, @required this.selectedDay, @required this.onSelect})
-      : super(key: key);
+  Calendar({
+    Key key,
+    @required this.selectedDay,
+    @required this.onSelect,
+    this.availableInterval = const DayInterval(),
+  }) : super(key: key);
 
   @override
   _CalendarState createState() => _CalendarState();
@@ -146,12 +151,15 @@ class _CalendarState extends State<Calendar> {
 
     final today = Day.now();
     final isToday = day.isSameDay(today);
+    final isAvailable = widget.availableInterval.hasInside(day);
 
     final color = isSameDay
         ? Theme.of(context).accentColor
         : isToday
-            ? Theme.of(context).accentColor.withOpacity(0.4)
-            : Colors.grey[350];
+            ? Theme.of(context).accentColor.withOpacity(0.6)
+            : isAvailable
+                ? Colors.grey[400]
+                : Colors.grey[300];
 
     final textColor = isSameDay ? Colors.white : Colors.grey[800];
 

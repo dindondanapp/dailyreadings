@@ -2,7 +2,7 @@ import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../common/extensions.dart';
-import 'controls_box.dart';
+import 'controls_box_controller.dart';
 
 class ControlsBar extends StatelessWidget {
   final DateTime date;

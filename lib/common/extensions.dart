@@ -176,10 +176,25 @@ class DayInterval {
   final Day start;
   final Day end;
 
-  DayInterval({this.start, this.end}) {
-    if (this.start.isAfter(this.end)) {
-      throw Exception('The end day cannot precede the start day.');
-    }
+  const DayInterval({this.start, this.end});
+  const DayInterval.none()
+      : this.start = null,
+        this.end = null;
+
+  hasInside(Day day) {
+    final afterStart =
+        start == null || day.isAfter(start) || day.isAtSameMomentAs(start);
+    final beforeEnd =
+        end == null || day.isBefore(end) || day.isAtSameMomentAs(end);
+
+    return afterStart && beforeEnd;
+  }
+
+  hasOutside(Day day) {
+    final beforeStart = start != null && day.isBefore(start);
+    final afterEnd = end != null && day.isAfter(end);
+
+    return beforeStart || afterEnd;
   }
 }
 

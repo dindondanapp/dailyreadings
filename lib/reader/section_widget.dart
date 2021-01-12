@@ -20,7 +20,6 @@ class _SectionWidgetState extends State<SectionWidget> {
   AlternativeController alternativeController;
   @override
   void initState() {
-    print('State initialized');
     alternativeController =
         widget.globalAlternativeController ?? AlternativeController();
     super.initState();

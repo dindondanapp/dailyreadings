@@ -20,8 +20,12 @@ class AlternativeSelectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: _dividedLabels().toList(),
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: _dividedLabels().toList(),
+      ),
     );
   }
 
@@ -32,22 +36,40 @@ class AlternativeSelectionBar extends StatelessWidget {
       yield _buildLabel(index, iterator.current);
       while (iterator.moveNext()) {
         index++;
-        yield Text(', ');
+        yield Builder(
+          builder: (context) => Container(
+            margin: EdgeInsets.symmetric(horizontal: 10),
+            height: 30,
+            decoration: BoxDecoration(
+              border: Border(
+                left:
+                    BorderSide(color: Theme.of(context).primaryColor, width: 1),
+              ),
+            ),
+          ),
+        );
         yield _buildLabel(index, iterator.current);
       }
     }
   }
 
   Widget _buildLabel(int index, String label) {
-    return TextButton(
-      onPressed: index == selected ? () {} : () => onSelected(index),
-      child: Text(
-        label ?? '',
-        style: index == selected
-            ? TextStyle(
-                decoration: TextDecoration.underline,
-              )
-            : null,
+    return Builder(
+      builder: (context) => GestureDetector(
+        onTap: index == selected ? () {} : () => onSelected(index),
+        child: Text(
+          label ?? '',
+          style: index == selected
+              ? TextStyle(
+                  decoration: TextDecoration.underline,
+                  color: Theme.of(context).primaryColor,
+                  fontStyle: FontStyle.italic,
+                )
+              : TextStyle(
+                  color: Theme.of(context).primaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+        ),
       ),
     );
   }

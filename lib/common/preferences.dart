@@ -20,7 +20,7 @@ class Preferences extends LocalPreferences {
             'font_size': defaultFontSize,
             'theme': defaultTheme.enumSerialize(),
             'fullscreen': defaultFullscreen,
-            'first_time': false,
+            'first_time': true,
           },
           child: child,
         );

@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
   Widget _buildApp(BuildContext context) {
     final ThemeData lightTheme = ThemeData(
       primarySwatch: Palette.dinDonDanBlue.toMaterialColor(),
+      accentColor: Palette.dinDonDanBlue,
     );
 
     final ThemeData darkTheme = ThemeData.dark().copyWith(

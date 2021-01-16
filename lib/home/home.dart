@@ -1,17 +1,18 @@
 import 'dart:math';
 
-import 'package:dailyreadings/common/platform_icons.dart';
-import 'package:dailyreadings/home/statusbar_blend_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../common/extensions.dart';
+import '../common/platform_icons.dart';
 import '../common/preferences.dart';
 import '../controls/controls_box.dart';
 import '../controls/controls_box_controller.dart';
 import '../reader/readings_display.dart';
 import '../readings_repository.dart';
+import 'first_time_tutorial.dart';
 import 'home_scroll_physics.dart';
+import 'statusbar_blend_cover.dart';
 
 /// Main widget, that contains all the dynamic content of the app
 class Home extends StatefulWidget {
@@ -187,6 +188,15 @@ class _HomeState extends State<Home> {
           Preferences.of(context).fullscreen
               ? Container()
               : StatusBarBlendCover(),
+          IgnorePointer(
+            ignoring: !Preferences.of(context).firstTime,
+            child: AnimatedOpacity(
+              opacity: Preferences.of(context).firstTime ? 1 : 0,
+              curve: Curves.easeInOut,
+              duration: Duration(seconds: 1),
+              child: FirstTimeTutorial(),
+            ),
+          ),
         ],
       ),
     );

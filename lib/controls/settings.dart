@@ -88,13 +88,11 @@ class Settings extends StatelessWidget {
                   valueIcons: {
                     Rite.roman: Container(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: Text('Romano',
-                          style: DefaultTextStyle.of(context).style),
+                      child: Text('Romano'),
                     ),
                     Rite.ambrosian: Container(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: Text('Ambrosiano',
-                          style: DefaultTextStyle.of(context).style),
+                      child: Text('Ambrosiano'),
                     ),
                   },
                 ),
@@ -175,6 +173,7 @@ class RadioSelector<T> extends StatelessWidget {
     return (direction == Axis.horizontal)
         ? Row(
             mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: children,
           )
         : Column(
@@ -192,6 +191,17 @@ Widget _buildRoundedButton({
 }) {
   final backgroundColor =
       selected ? Theme.of(context).primaryColor : Theme.of(context).buttonColor;
+  final foregroundColor = Theme.of(context).brightness == Brightness.dark
+      ? ThemeData.estimateBrightnessForColor(backgroundColor) == Brightness.dark
+          ? DefaultTextStyle.of(context).style.color
+          : Colors.black
+      : ThemeData.estimateBrightnessForColor(backgroundColor) ==
+              Brightness.light
+          ? DefaultTextStyle.of(context).style.color
+          : Colors.white;
+  print('Theme: ${Theme.of(context).brightness}');
+  print(ThemeData.estimateBrightnessForColor(backgroundColor));
+  print(foregroundColor);
   return Container(
     margin: EdgeInsets.all(5),
     child: ClipRRect(
@@ -209,13 +219,12 @@ Widget _buildRoundedButton({
               child: Center(
                 child: DefaultTextStyle(
                   child: IconTheme(
-                    child: child,
-                    data: IconThemeData(
-                        color: DefaultTextStyle.of(context).style.color,
-                        size: 20),
+                    child: Builder(builder: (context) => child),
+                    data: IconThemeData(color: foregroundColor, size: 20),
                   ),
                   style: TextStyle(
                     fontSize: 16,
+                    color: foregroundColor,
                   ),
                 ),
               ),

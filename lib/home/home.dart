@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:dailyreadings/common/platform_icons.dart';
-import 'package:dailyreadings/home/statusbar_blend_cover.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../common/enums.dart';
+import '../common/entities.dart';
 
 /// A widget that displays the daily readings
 class ReadingsDisplay extends StatefulWidget {

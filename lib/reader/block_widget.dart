@@ -1,4 +1,4 @@
-import 'package:dailyreadings/common/enums.dart';
+import 'package:dailyreadings/common/entities.dart';
 import 'package:drop_cap_text/drop_cap_text.dart';
 import 'package:flutter/material.dart';
 

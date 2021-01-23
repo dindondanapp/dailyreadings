@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'common/enums.dart';
+import 'common/entities.dart';
 import 'common/extensions.dart';
 
 /// An object that handles data sourcing for the readings
@@ -239,6 +239,7 @@ class ReadingsParser {
   }
 }
 
+/// The state of a [ReadingsSnapshot]
 enum ReadingsSnapshotState {
   inexistent,
   badFormat,

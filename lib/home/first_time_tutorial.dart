@@ -1,10 +1,15 @@
-import 'package:dailyreadings/common/enums.dart';
+import 'package:dailyreadings/common/entities.dart';
 import 'package:dailyreadings/common/preferences.dart';
 import 'package:dailyreadings/controls/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+/// A Widget that shows a first-time tutorial
 class FirstTimeTutorial extends StatefulWidget {
+  /// Creates a widget with instruction on how to use the app. This is supposed
+  /// to be shown only on first open, as an overlay of the Home screen
+  FirstTimeTutorial({Key key}) : super(key: key);
+
   @override
   _FirstTimeTutorialState createState() => _FirstTimeTutorialState();
 }

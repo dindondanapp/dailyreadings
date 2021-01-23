@@ -138,43 +138,7 @@ class _HomeState extends State<Home> {
                                     ? 0.5
                                     : 1,
                                 child: Builder(builder: (context) {
-                                  if (snapshot.hasError ||
-                                      snapshot.data == null ||
-                                      snapshot.data.state ==
-                                          ReadingsSnapshotState.badFormat) {
-                                    return _buildReadingsError();
-                                  }
-                                  if (snapshot.data.state ==
-                                      ReadingsSnapshotState.downloaded) {
-                                    return ReadingsDisplay(
-                                      data: snapshot.data.data,
-                                      // The key ensures that the states of the
-                                      // widgets that constitute the reader are
-                                      // not preserved across different readings
-                                      key: Key(snapshot.data.requestedId
-                                          .serialize()),
-                                    );
-                                  }
-
-                                  if (snapshot.data.state ==
-                                      ReadingsSnapshotState
-                                          .waitingForDownload) {
-                                    return FutureBuilder<Widget>(
-                                        key: Key(snapshot.data.requestedId
-                                            .serialize()),
-                                        future: Future.delayed(
-                                            Duration(
-                                                seconds:
-                                                    15), // TODO: Standard timeouts
-                                            () => _buildReadingsError()),
-                                        initialData: _buildReadingsDownload(),
-                                        builder: (context, snapshot) {
-                                          return snapshot.data;
-                                        });
-                                  }
-
-                                  return _buildReadingsNotAvailable(
-                                      snapshot.data.requestedId);
+                                  return _renderSnapshot(snapshot, context);
                                 }),
                               ),
                             );
@@ -221,6 +185,38 @@ class _HomeState extends State<Home> {
         );
       },
     );
+  }
+
+  Widget _renderSnapshot(
+      AsyncSnapshot<ReadingsSnapshot> snapshot, BuildContext context) {
+    if (snapshot.hasError ||
+        snapshot.data == null ||
+        snapshot.data.state == ReadingsSnapshotState.badFormat) {
+      return _buildReadingsError();
+    }
+    if (snapshot.data.state == ReadingsSnapshotState.downloaded) {
+      return ReadingsDisplay(
+        data: snapshot.data.data,
+        // The key ensures that the states of the
+        // widgets that constitute the reader are
+        // not preserved across different readings
+        key: Key(snapshot.data.requestedId.serialize()),
+      );
+    }
+
+    if (snapshot.data.state == ReadingsSnapshotState.waitingForDownload) {
+      return FutureBuilder<Widget>(
+          key: Key(snapshot.data.requestedId.serialize()),
+          future: Future.delayed(
+              Duration(seconds: 15), // TODO: Standard timeouts
+              () => _buildReadingsError()),
+          initialData: _buildReadingsDownload(),
+          builder: (context, snapshot) {
+            return snapshot.data;
+          });
+    }
+
+    return _buildReadingsNotAvailable(snapshot.data.requestedId);
   }
 
   Widget _buildReadingsNotAvailable(ReadingsDataIdentifier id) {

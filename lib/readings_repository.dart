@@ -54,9 +54,7 @@ class ReadingsRepository {
         .doc(id.serialize())
         .snapshots()
         .map<ReadingsSnapshot>((snapshot) {
-      print('Got snapshot.');
       if (snapshot.exists) {
-        print('Snapshot exists.');
         return ReadingsSnapshot.fromFirebase(id, snapshot.data());
       } else {
         if (snapshot.metadata.isFromCache) {
@@ -86,7 +84,6 @@ class ReadingsRepository {
           end: Day.fromDateTime((intervalMap['end'] as Timestamp).toDate()),
         );
       } catch (e) {
-        print('Error: $e');
         return DayInterval.none();
       }
     }).asBroadcastStream();

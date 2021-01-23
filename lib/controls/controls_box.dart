@@ -1,3 +1,4 @@
+import 'package:dailyreadings/common/configuration.dart';
 import 'package:flutter/material.dart';
 
 import '../common/extensions.dart';
@@ -54,13 +55,13 @@ class ControlsBox extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: AnimatedContainer(
                   curve: Curves.ease,
-                  duration: Duration(milliseconds: 500),
+                  duration: Configuration.defaultTransitionDuration,
                   color: color,
                   child: Column(
                     children: [
                       AnimatedOpacity(
                         opacity: opacity,
-                        duration: Duration(milliseconds: 500),
+                        duration: Configuration.defaultTransitionDuration,
                         curve: Curves.ease,
                         child: SizedBox(
                           height: size,

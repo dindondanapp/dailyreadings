@@ -1,8 +1,10 @@
-import 'package:dailyreadings/common/entities.dart';
-import 'package:dailyreadings/common/preferences.dart';
-import 'package:dailyreadings/controls/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../common/configuration.dart';
+import '../common/entities.dart';
+import '../common/preferences.dart';
+import '../controls/settings.dart';
 
 /// A Widget that shows a first-time tutorial
 class FirstTimeTutorial extends StatefulWidget {
@@ -42,46 +44,44 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
   @override
   Widget build(BuildContext context) {
     return ButtonTheme(
-      child: Container(
-        child: Stack(children: [
-          Column(
-            children: [
-              SizedBox(
-                height: 50 + MediaQuery.of(context).padding.top,
-                child: AnimatedOpacity(
-                  opacity: _upperOpacity,
-                  curve: Curves.easeInOut,
-                  duration: Duration(seconds: 1),
-                  child: Container(
-                    decoration:
-                        BoxDecoration(color: Theme.of(context).canvasColor),
-                  ),
+      child: Stack(children: [
+        Column(
+          children: [
+            SizedBox(
+              height: 50 + MediaQuery.of(context).padding.top,
+              child: AnimatedOpacity(
+                opacity: _upperOpacity,
+                curve: Curves.easeInOut,
+                duration: Configuration.slowTransitionDuration,
+                child: Container(
+                  decoration:
+                      BoxDecoration(color: Theme.of(context).canvasColor),
                 ),
               ),
-              Expanded(
-                child: AnimatedOpacity(
-                  opacity: _lowerOpacity,
-                  curve: Curves.easeInOut,
-                  duration: Duration(seconds: 1),
-                  child: Container(
-                    decoration:
-                        BoxDecoration(color: Theme.of(context).canvasColor),
-                  ),
+            ),
+            Expanded(
+              child: AnimatedOpacity(
+                opacity: _lowerOpacity,
+                curve: Curves.easeInOut,
+                duration: Configuration.slowTransitionDuration,
+                child: Container(
+                  decoration:
+                      BoxDecoration(color: Theme.of(context).canvasColor),
                 ),
               ),
-            ],
-          ),
-          PageView(
-            controller: pageController,
-            physics: new NeverScrollableScrollPhysics(),
-            children: [
-              _buildWelcomePage(context),
-              _buildCalendarPage(context),
-              _buildSettingsPage(context),
-            ],
-          ),
-        ]),
-      ),
+            ),
+          ],
+        ),
+        PageView(
+          controller: pageController,
+          physics: new NeverScrollableScrollPhysics(),
+          children: [
+            _buildWelcomePage(context),
+            _buildCalendarPage(context),
+            _buildSettingsPage(context),
+          ],
+        ),
+      ]),
     );
   }
 
@@ -144,7 +144,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
               child: RaisedButton(
                 onPressed: () => pageController.nextPage(
                   curve: Curves.easeInOut,
-                  duration: Duration(milliseconds: 500),
+                  duration: Configuration.defaultTransitionDuration,
                 ),
                 elevation: 2,
                 focusElevation: 3,
@@ -285,7 +285,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
   void nextPage() {
     pageController.nextPage(
       curve: Curves.easeInOut,
-      duration: Duration(milliseconds: 500),
+      duration: Configuration.defaultTransitionDuration,
     );
   }
 

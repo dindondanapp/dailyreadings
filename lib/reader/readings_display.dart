@@ -1,11 +1,11 @@
 import 'package:collection/collection.dart';
-import 'package:dailyreadings/reader/alternative_control_widget.dart';
-import 'package:dailyreadings/reader/section_widget.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../common/entities.dart';
+import 'alternative_control_widget.dart';
+import 'section_widget.dart';
 
 /// A widget that displays the daily readings
 class ReadingsDisplay extends StatefulWidget {

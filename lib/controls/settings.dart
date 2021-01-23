@@ -1,7 +1,7 @@
-import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../common/entities.dart';
+import '../common/platform_icons.dart';
 import '../common/preferences.dart';
 
 class Settings extends StatelessWidget {

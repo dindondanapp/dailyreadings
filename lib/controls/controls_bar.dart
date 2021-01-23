@@ -1,3 +1,4 @@
+import 'package:dailyreadings/common/configuration.dart';
 import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
 
@@ -58,7 +59,7 @@ class ControlsBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(5),
         child: AnimatedContainer(
           curve: Curves.easeInOut,
-          duration: Duration(milliseconds: 200),
+          duration: Configuration.quickTransitionDuration,
           color: background,
           child: Material(
             color: Colors.transparent,

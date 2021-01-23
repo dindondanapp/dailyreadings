@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dailyreadings/common/configuration.dart';
 import 'package:dailyreadings/reader/readings_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -110,7 +111,7 @@ class _HomeState extends State<Home> {
               Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: 400,
+                    maxWidth: Configuration.maxReaderWidth,
                     minHeight: _controlsBoxSize +
                         MediaQuery.of(context).size.height -
                         MediaQuery.of(context).padding.bottom -
@@ -131,7 +132,8 @@ class _HomeState extends State<Home> {
                             return Container(
                               padding: EdgeInsets.all(15),
                               child: AnimatedOpacity(
-                                duration: Duration(milliseconds: 500),
+                                duration:
+                                    Configuration.defaultTransitionDuration,
                                 curve: Curves.easeInOut,
                                 opacity: snapshot.connectionState ==
                                         ConnectionState.waiting
@@ -161,7 +163,7 @@ class _HomeState extends State<Home> {
               child: AnimatedOpacity(
                 opacity: Preferences.of(context).firstTime ? 1 : 0,
                 curve: Curves.easeInOut,
-                duration: Duration(seconds: 1),
+                duration: Configuration.slowTransitionDuration,
                 child: FirstTimeTutorial(),
               ),
             ),
@@ -208,8 +210,7 @@ class _HomeState extends State<Home> {
       return FutureBuilder<Widget>(
           key: Key(snapshot.data.requestedId.serialize()),
           future: Future.delayed(
-              Duration(seconds: 15), // TODO: Standard timeouts
-              () => _buildReadingsError()),
+              Configuration.networkTimeout, () => _buildReadingsError()),
           initialData: _buildReadingsDownload(),
           builder: (context, snapshot) {
             return snapshot.data;
@@ -300,11 +301,13 @@ class _HomeState extends State<Home> {
     if (_controlsState.selection == ControlsBoxSelection.calendar &&
         _controlsState.boxOpen != BoxOpenState.closed) {
       _scrollController.animateTo(_controlsBoxSize,
-          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+          duration: Configuration.defaultTransitionDuration,
+          curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.calendar;
       _scrollController.animateTo(0,
-          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+          duration: Configuration.defaultTransitionDuration,
+          curve: Curves.easeInOut);
     }
   }
 
@@ -312,11 +315,13 @@ class _HomeState extends State<Home> {
     if (_controlsState.selection == ControlsBoxSelection.settings &&
         _controlsState.boxOpen != BoxOpenState.closed) {
       _scrollController.animateTo(_controlsBoxSize,
-          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+          duration: Configuration.defaultTransitionDuration,
+          curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.settings;
       _scrollController.animateTo(0,
-          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+          duration: Configuration.defaultTransitionDuration,
+          curve: Curves.easeInOut);
     }
   }
 

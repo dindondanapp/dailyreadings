@@ -1,6 +1,6 @@
-import 'package:dailyreadings/common/entities.dart';
 import 'package:flutter/material.dart';
 
+import '../common/entities.dart';
 import 'extensions.dart';
 import 'local_preferences.dart';
 

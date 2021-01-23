@@ -67,6 +67,8 @@ class _SectionWidgetState extends State<SectionWidget> {
             : null;
         final List<Widget> blockWidgets =
             _buildBlockWidgets(blocks, dropCapBlock);
+
+        // Insert alternative selection bar right after the heading, if needed
         if (labels != null && labels.length >= 2) {
           final alternativeControl = AlternativeSelectionBar(
             labels: labels,

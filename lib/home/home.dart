@@ -163,7 +163,7 @@ class _HomeState extends State<Home> {
               child: AnimatedOpacity(
                 opacity: Preferences.of(context).firstTime ? 1 : 0,
                 curve: Curves.easeInOut,
-                duration: Configuration.slowTransitionDuration,
+                duration: Configuration.defaultTransitionDuration,
                 child: FirstTimeTutorial(),
               ),
             ),

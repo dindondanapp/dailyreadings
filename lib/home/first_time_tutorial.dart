@@ -43,46 +43,42 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
 
   @override
   Widget build(BuildContext context) {
-    return ButtonTheme(
-      child: Stack(children: [
-        Column(
-          children: [
-            SizedBox(
-              height: 50 + MediaQuery.of(context).padding.top,
-              child: AnimatedOpacity(
-                opacity: _upperOpacity,
-                curve: Curves.easeInOut,
-                duration: Configuration.slowTransitionDuration,
-                child: Container(
-                  decoration:
-                      BoxDecoration(color: Theme.of(context).canvasColor),
-                ),
+    return Stack(children: [
+      Column(
+        children: [
+          SizedBox(
+            height: 50 + MediaQuery.of(context).padding.top,
+            child: AnimatedOpacity(
+              opacity: _upperOpacity,
+              curve: Curves.easeInOut,
+              duration: Configuration.slowTransitionDuration,
+              child: Container(
+                decoration: BoxDecoration(color: Theme.of(context).canvasColor),
               ),
             ),
-            Expanded(
-              child: AnimatedOpacity(
-                opacity: _lowerOpacity,
-                curve: Curves.easeInOut,
-                duration: Configuration.slowTransitionDuration,
-                child: Container(
-                  decoration:
-                      BoxDecoration(color: Theme.of(context).canvasColor),
-                ),
+          ),
+          Expanded(
+            child: AnimatedOpacity(
+              opacity: _lowerOpacity,
+              curve: Curves.easeInOut,
+              duration: Configuration.slowTransitionDuration,
+              child: Container(
+                decoration: BoxDecoration(color: Theme.of(context).canvasColor),
               ),
             ),
-          ],
-        ),
-        PageView(
-          controller: pageController,
-          physics: new NeverScrollableScrollPhysics(),
-          children: [
-            _buildWelcomePage(context),
-            _buildCalendarPage(context),
-            _buildSettingsPage(context),
-          ],
-        ),
-      ]),
-    );
+          ),
+        ],
+      ),
+      PageView(
+        controller: pageController,
+        physics: new NeverScrollableScrollPhysics(),
+        children: [
+          _buildWelcomePage(context),
+          _buildCalendarPage(context),
+          _buildSettingsPage(context),
+        ],
+      ),
+    ]);
   }
 
   Widget _buildWelcomePage(BuildContext context) {
@@ -152,6 +148,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
                 highlightElevation: 3,
                 child: Text('Avanti'),
                 textTheme: ButtonTextTheme.primary,
+                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),
@@ -170,34 +167,41 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
             onTap: () => nextPage(),
             child: Container(
               color: Colors.transparent,
-              padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  left: 30,
-                  right: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Icon(
-                      Icons.arrow_upward,
-                      size: 24,
-                      color: Theme.of(context).primaryColor,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(maxWidth: Configuration.maxReaderWidth),
+                  child: Container(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        left: 15,
+                        right: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Icon(
+                            Icons.arrow_upward,
+                            size: 24,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 380),
+                          child: Text(
+                            'Aprendo l\'app troverai sempre le letture di oggi. '
+                            'Per visualizzare le letture di un altro giorno tocca l\'icona del calendario.',
+                            style: TextStyle(
+                              height: 1.5,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    'Aprendo l\'app troverai sempre le letture di oggi. '
-                    'Per visualizzare le letture di un altro giorno tocca l\'icona del calendario.',
-                    style: TextStyle(
-                      height: 1.5,
-                      fontSize: 16,
-                    ),
-                  ),
-                  Expanded(child: Container()),
-                ],
+                ),
               ),
             ),
           ),
@@ -212,6 +216,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
                 focusElevation: 3,
                 hoverElevation: 3,
                 highlightElevation: 3,
+                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),
@@ -229,36 +234,44 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
             onTap: () => close(),
             child: Container(
               color: Colors.transparent,
-              padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 10,
-                  left: 30,
-                  right: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Icon(
-                      Icons.arrow_upward,
-                      size: 24,
-                      color: Theme.of(context).primaryColor,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      BoxConstraints(maxWidth: Configuration.maxReaderWidth),
+                  child: Container(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top + 20,
+                        left: 15,
+                        right: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Icon(
+                            Icons.arrow_upward,
+                            size: 24,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 500),
+                          child: Text(
+                            'Tocca l\'icona delle impostazioni per modificare '
+                            'in qualunque momento la scelta del rito, '
+                            'le dimensioni del testo e il tema',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              height: 1.5,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Text(
-                    'Tocca l\'icona delle impostazioni per modificare '
-                    'in qualunque momento la scelta del rito, '
-                    'le dimensioni del testo e il tema',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      height: 1.5,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -273,6 +286,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
                 focusElevation: 3,
                 hoverElevation: 3,
                 highlightElevation: 3,
+                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),

@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
       brightness: Brightness.dark,
       primaryColor: Palette.dinDonDanBlue,
       accentColor: Palette.dinDonDanBlue,
+      buttonColor: Colors.grey[700],
     );
 
     return MaterialApp(

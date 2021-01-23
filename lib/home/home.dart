@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:dailyreadings/reader/readings_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,7 +9,6 @@ import '../common/platform_icons.dart';
 import '../common/preferences.dart';
 import '../controls/controls_box.dart';
 import '../controls/controls_box_controller.dart';
-import '../reader/readings_display.dart';
 import '../readings_repository.dart';
 import 'first_time_tutorial.dart';
 import 'home_scroll_physics.dart';
@@ -22,10 +22,10 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final double controlsBoxSize = 300;
+  final double _controlsBoxSize = 300;
 
   // A repository to access a remote reading. Will be initialized in initState.
-  ReadingsRepository repository = ReadingsRepository();
+  ReadingsRepository _repository;
 
   // Controller to handle and manage the scrollview state
   ScrollController _scrollController;
@@ -35,16 +35,18 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    super.initState();
+    _repository = ReadingsRepository();
 
     // Update repository when the control state changes, as the date may have
     // changed
     _controlsState.addListener(
-      () => repository.id = ReadingsDataIdentifier(
+      () => _repository.id = ReadingsDataIdentifier(
         day: _controlsState.day,
         rite: Preferences.of(context).rite,
       ),
     );
+
+    super.initState();
   }
 
   @override
@@ -60,15 +62,15 @@ class _HomeState extends State<Home> {
     }
 
     // Update scroll controller
-    _scrollController = ScrollController(initialScrollOffset: controlsBoxSize);
+    _scrollController = ScrollController(initialScrollOffset: _controlsBoxSize);
 
     // Change controls opacity to only show them when the page is scrolled up
     _scrollController.addListener(() {
-      if (_scrollController.offset <= controlsBoxSize * 0.25) {
+      if (_scrollController.offset <= _controlsBoxSize * 0.25) {
         if (_controlsState.boxOpen != BoxOpenState.open) {
           _controlsState.boxOpen = BoxOpenState.open;
         }
-      } else if (_scrollController.offset < controlsBoxSize * 0.75) {
+      } else if (_scrollController.offset < _controlsBoxSize * 0.75) {
         if (_controlsState.boxOpen == BoxOpenState.open) {
           _controlsState.boxOpen = BoxOpenState.closing;
         } else if (_controlsState.boxOpen == BoxOpenState.closed) {
@@ -81,8 +83,8 @@ class _HomeState extends State<Home> {
       }
     });
 
-    // Update repository, as the rite may have changed
-    repository.id = ReadingsDataIdentifier(
+    // Update repository, as the rite and day may have changed
+    _repository.id = ReadingsDataIdentifier(
       day: _controlsState.day,
       rite: Preferences.of(context).rite,
     );
@@ -96,7 +98,7 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: [
           ListView(
-            physics: HomeScrollPhysics(bound: controlsBoxSize + 15),
+            physics: HomeScrollPhysics(bound: _controlsBoxSize + 15),
             controller: _scrollController,
             padding: EdgeInsets.only(
               left: max(MediaQuery.of(context).padding.left, 15),
@@ -109,7 +111,7 @@ class _HomeState extends State<Home> {
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     maxWidth: 400,
-                    minHeight: controlsBoxSize +
+                    minHeight: _controlsBoxSize +
                         MediaQuery.of(context).size.height -
                         MediaQuery.of(context).padding.bottom -
                         MediaQuery.of(context).padding.top,
@@ -122,9 +124,9 @@ class _HomeState extends State<Home> {
                           fontSize: Preferences.of(context).fontSize.toDouble(),
                         ),
                         child: StreamBuilder<ReadingsSnapshot>(
-                          stream: repository.readingsStream,
+                          stream: _repository.readingsStream,
                           initialData:
-                              ReadingsSnapshot.notDownloaded(repository.id),
+                              ReadingsSnapshot.notDownloaded(_repository.id),
                           builder: (context, snapshot) {
                             return Container(
                               padding: EdgeInsets.all(15),
@@ -190,11 +192,14 @@ class _HomeState extends State<Home> {
               : StatusBarBlendCover(),
           IgnorePointer(
             ignoring: !Preferences.of(context).firstTime,
-            child: AnimatedOpacity(
-              opacity: Preferences.of(context).firstTime ? 1 : 0,
-              curve: Curves.easeInOut,
-              duration: Duration(seconds: 1),
-              child: FirstTimeTutorial(),
+            child: Visibility(
+              visible: Preferences.of(context).ready,
+              child: AnimatedOpacity(
+                opacity: Preferences.of(context).firstTime ? 1 : 0,
+                curve: Curves.easeInOut,
+                duration: Duration(seconds: 1),
+                child: FirstTimeTutorial(),
+              ),
             ),
           ),
         ],
@@ -204,17 +209,18 @@ class _HomeState extends State<Home> {
 
   Widget _buildControlsBoxAndBar() {
     return StreamBuilder<DayInterval>(
-        stream: repository.calendarIntervalStream,
-        initialData: DayInterval.none(),
-        builder: (context, snapshot) {
-          return ControlsBox(
-            controller: _controlsState,
-            size: controlsBoxSize,
-            onCalendarTap: onCalendarTap,
-            onSettingsTap: onSettingsTap,
-            availableInterval: snapshot.data,
-          );
-        });
+      stream: _repository.calendarIntervalStream,
+      initialData: DayInterval.none(),
+      builder: (context, snapshot) {
+        return ControlsBox(
+          controller: _controlsState,
+          size: _controlsBoxSize,
+          onCalendarTap: onCalendarTap,
+          onSettingsTap: onSettingsTap,
+          availableInterval: snapshot.data,
+        );
+      },
+    );
   }
 
   Widget _buildReadingsNotAvailable(ReadingsDataIdentifier id) {
@@ -297,7 +303,7 @@ class _HomeState extends State<Home> {
   void onCalendarTap() {
     if (_controlsState.selection == ControlsBoxSelection.calendar &&
         _controlsState.boxOpen != BoxOpenState.closed) {
-      _scrollController.animateTo(controlsBoxSize,
+      _scrollController.animateTo(_controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.calendar;
@@ -309,7 +315,7 @@ class _HomeState extends State<Home> {
   void onSettingsTap() {
     if (_controlsState.selection == ControlsBoxSelection.settings &&
         _controlsState.boxOpen != BoxOpenState.closed) {
-      _scrollController.animateTo(controlsBoxSize,
+      _scrollController.animateTo(_controlsBoxSize,
           duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
     } else {
       _controlsState.selection = ControlsBoxSelection.settings;
@@ -320,8 +326,8 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
-    _controlsState.dispose();
-    repository.dispose();
     super.dispose();
+    _controlsState.dispose();
+    _repository.dispose();
   }
 }

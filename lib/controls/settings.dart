@@ -199,9 +199,7 @@ Widget _buildRoundedButton({
               Brightness.light
           ? DefaultTextStyle.of(context).style.color
           : Colors.white;
-  print('Theme: ${Theme.of(context).brightness}');
-  print(ThemeData.estimateBrightnessForColor(backgroundColor));
-  print(foregroundColor);
+
   return Container(
     margin: EdgeInsets.all(5),
     child: ClipRRect(

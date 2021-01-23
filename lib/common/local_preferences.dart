@@ -83,6 +83,10 @@ class LocalPreferences extends InheritedNotifier<PreferencesNotifier> {
     }
   }
 
+  /// Whether the preferences has been loaded from the local drive and are ready
+  /// for use
+  bool get ready => notifier.ready;
+
   /// Sets a shared preferences record given a `key` and `value`.
   ///
   /// If a default value is available for the given key, checks that the value
@@ -119,6 +123,7 @@ class LocalPreferences extends InheritedNotifier<PreferencesNotifier> {
 /// and handles its asynchronous reading and writing.
 class PreferencesNotifier extends ValueNotifier<Map<String, dynamic>> {
   Future<SharedPreferences> get _prefsFuture => SharedPreferences.getInstance();
+  bool ready = false;
 
   PreferencesNotifier() : super({}) {
     refreshValue();
@@ -130,6 +135,7 @@ class PreferencesNotifier extends ValueNotifier<Map<String, dynamic>> {
           prefs.getKeys().map((e) => MapEntry(e, prefs.get(e))));
 
       value = newValue;
+      ready = true;
     });
   }
 

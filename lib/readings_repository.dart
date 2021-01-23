@@ -12,9 +12,10 @@ class ReadingsRepository {
   ReadingsDataIdentifier _id;
   ReadingsDataIdentifier get id => _id;
 
-  static final readingsStreamController = StreamController<ReadingsSnapshot>();
-  static final calendarIntervalStreamController =
-      StreamController<DayInterval>();
+  static final _readingsStreamController =
+      StreamController<ReadingsSnapshot>.broadcast();
+  static final _calendarIntervalStreamController =
+      StreamController<DayInterval>.broadcast();
 
   /// A stream of [ReadingsData] objects
   final Stream<ReadingsSnapshot> readingsStream;
@@ -25,8 +26,8 @@ class ReadingsRepository {
   /// Creates an object that handles data sourcing from Firebase Cloud
   /// Firestore, for the given [ReadingsDataIdentifier]
   ReadingsRepository([ReadingsDataIdentifier id])
-      : readingsStream = readingsStreamController.stream,
-        calendarIntervalStream = calendarIntervalStreamController.stream {
+      : readingsStream = _readingsStreamController.stream,
+        calendarIntervalStream = _calendarIntervalStreamController.stream {
     if (id != null) {
       this.id = id;
     }
@@ -37,9 +38,9 @@ class ReadingsRepository {
         value.day != this.id.day ||
         value.rite != this.id.rite) {
       getReadingsStream(value)
-          .listen((snapshot) => readingsStreamController.add(snapshot));
-      getCalendarIntervalStream(value.rite)
-          .listen((snapshot) => calendarIntervalStreamController.add(snapshot));
+          .listen((snapshot) => _readingsStreamController.add(snapshot));
+      getCalendarIntervalStream(value.rite).listen(
+          (snapshot) => _calendarIntervalStreamController.add(snapshot));
     }
 
     this._id = value;
@@ -53,7 +54,9 @@ class ReadingsRepository {
         .doc(id.serialize())
         .snapshots()
         .map<ReadingsSnapshot>((snapshot) {
+      print('Got snapshot.');
       if (snapshot.exists) {
+        print('Snapshot exists.');
         return ReadingsSnapshot.fromFirebase(id, snapshot.data());
       } else {
         if (snapshot.metadata.isFromCache) {
@@ -83,14 +86,15 @@ class ReadingsRepository {
           end: Day.fromDateTime((intervalMap['end'] as Timestamp).toDate()),
         );
       } catch (e) {
+        print('Error: $e');
         return DayInterval.none();
       }
-    });
+    }).asBroadcastStream();
   }
 
   void dispose() {
-    readingsStreamController.close();
-    calendarIntervalStreamController.close();
+    _readingsStreamController.close();
+    _calendarIntervalStreamController.close();
   }
 }
 
@@ -147,7 +151,8 @@ class ReadingsParser {
     return ReadingsData(
       title: document["title"],
       rite: parseRite(document["rite"]),
-      source: Uri.tryParse(document["source"]),
+      source: document['source'],
+      sourceURL: Uri.tryParse(document["sourceURL"] ?? ''),
       date: DateTime.tryParse(document["date"]),
       sections: parseSections(document["sections"]),
     );
@@ -187,14 +192,12 @@ class ReadingsParser {
                     .toList(),
               );
             } else {
-              print('Section parsing failed for $data');
               return null;
             }
           })
           .where((e) => e != null)
           .toList();
     } else {
-      print('Sections parsing failed for $data');
       return [];
     }
   }

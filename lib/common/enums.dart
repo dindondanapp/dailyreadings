@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 class ReadingsData {
   final String title;
   final Rite rite;
-  final Uri source;
+  final String source;
+  final Uri sourceURL;
   final DateTime date;
   final List<Section> sections;
 
@@ -13,6 +14,7 @@ class ReadingsData {
     @required this.title,
     @required this.rite,
     @required this.source,
+    @required this.sourceURL,
     @required this.date,
   });
 }

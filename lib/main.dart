@@ -38,6 +38,9 @@ class MyApp extends StatelessWidget {
       accentColor: Palette.dinDonDanBlue,
     );
 
+    print(
+        'isReady: ${Preferences.of(context).ready}, isFirstTime: ${Preferences.of(context).firstTime}');
+
     return MaterialApp(
       darkTheme: darkTheme,
       theme: lightTheme,

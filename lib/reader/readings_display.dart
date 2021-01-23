@@ -1,7 +1,9 @@
 import 'package:collection/collection.dart';
 import 'package:dailyreadings/reader/alternative_control_widget.dart';
 import 'package:dailyreadings/reader/section_widget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../common/enums.dart';
 
@@ -104,6 +106,30 @@ class _ReadingsDisplayState extends State<ReadingsDisplay> {
                       : null,
                 ))
             .toList(),
+        SizedBox(height: 40),
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            text: 'Questi testi sono stati gentilmente offerti da ',
+            children: [
+              widget.data.sourceURL == null
+                  ? TextSpan(
+                      text: widget.data.source ?? '',
+                    )
+                  : TextSpan(
+                      text: widget.data.source ?? '',
+                      style: TextStyle(decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          launch(widget.data.sourceURL.toString());
+                        },
+                    ),
+            ],
+            style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontSize: DefaultTextStyle.of(context).style.fontSize * 0.8),
+          ),
+        ),
       ],
     );
   }

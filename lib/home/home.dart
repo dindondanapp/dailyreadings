@@ -158,14 +158,11 @@ class _HomeState extends State<Home> {
               : StatusBarBlendCover(),
           IgnorePointer(
             ignoring: !Preferences.of(context).firstTime,
-            child: Visibility(
-              visible: Preferences.of(context).ready,
-              child: AnimatedOpacity(
-                opacity: Preferences.of(context).firstTime ? 1 : 0,
-                curve: Curves.easeInOut,
-                duration: Configuration.defaultTransitionDuration,
-                child: FirstTimeTutorial(),
-              ),
+            child: AnimatedOpacity(
+              opacity: Preferences.of(context).firstTime ? 1 : 0,
+              curve: Curves.easeInOut,
+              duration: Configuration.defaultTransitionDuration,
+              child: FirstTimeTutorial(),
             ),
           ),
         ],

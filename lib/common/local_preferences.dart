@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,19 +29,25 @@ class LocalPreferences extends InheritedNotifier<PreferencesNotifier> {
   /// The [LocalPreferences] widget can be accessed from any child as an
   /// [InheritedWidget], with the method `Preferences.of(context)`.
   ///
-  /// The shared preferences will be loaded asynchronously from storage only
-  /// once, when the widget is created. Any modification requested from the
-  /// children will be notified immediately to all the descendants, and
-  /// automatically consolidated to storage asynchronously.
+  /// If [sharedPreferencesInstance] is provided, the shared preferences will
+  /// be imediately available. Otherwise they will be loaded asynchronously
+  /// from storage only once, when the widget is created.
+  ///
+  /// Any modification requested from the children will be notified immediately
+  /// to all the descendants, and automatically consolidated to storage
+  /// asynchronously.
   @override
   LocalPreferences({
     Key key,
     @required Widget child,
     this.defaultPrefs,
     this.prefix = '',
+    SharedPreferences sharedPreferencesInstance,
   }) : super(
           key: key,
-          notifier: PreferencesNotifier(),
+          notifier: sharedPreferencesInstance != null
+              ? PreferencesNotifier.preloaded(sharedPreferencesInstance)
+              : PreferencesNotifier(),
           child: child,
         ) {
     defaultPrefs.forEach((key, value) {
@@ -83,9 +91,10 @@ class LocalPreferences extends InheritedNotifier<PreferencesNotifier> {
     }
   }
 
-  /// Whether the preferences has been loaded from the local drive and are ready
-  /// for use
-  bool get ready => notifier.ready;
+  /// A future that completes with `true` when the preferences are loaded and
+  /// ready to be used. It will imediately complete if the optional
+  /// [SharedPreferences] instance is passed to the constructor.
+  Future<bool> get ready => notifier.ready;
 
   /// Sets a shared preferences record given a `key` and `value`.
   ///
@@ -122,21 +131,31 @@ class LocalPreferences extends InheritedNotifier<PreferencesNotifier> {
 /// A [ValueNotifier] that holds the current value of the shared preferences
 /// and handles its asynchronous reading and writing.
 class PreferencesNotifier extends ValueNotifier<Map<String, dynamic>> {
-  Future<SharedPreferences> get _prefsFuture => SharedPreferences.getInstance();
-  bool ready = false;
+  final Future<SharedPreferences> _prefsFuture;
+  final Completer<bool> readyCompleter = Completer();
 
-  PreferencesNotifier() : super({}) {
-    refreshValue();
-  }
+  Future<bool> get ready => readyCompleter.future;
 
-  void refreshValue() {
+  PreferencesNotifier()
+      : _prefsFuture = SharedPreferences.getInstance(),
+        super({}) {
     _prefsFuture.then((prefs) {
-      final newValue = Map.fromEntries(
-          prefs.getKeys().map((e) => MapEntry(e, prefs.get(e))));
+      final newValue = extractPreferencesMap(prefs);
 
       value = newValue;
-      ready = true;
+      readyCompleter.complete(true);
     });
+  }
+
+  PreferencesNotifier.preloaded(SharedPreferences sharedPreferences)
+      : _prefsFuture = Future.value(sharedPreferences),
+        super(extractPreferencesMap(sharedPreferences)) {
+    readyCompleter.complete(true);
+  }
+
+  static Map<String, dynamic> extractPreferencesMap(SharedPreferences prefs) {
+    return Map.fromEntries(
+        prefs.getKeys().map((e) => MapEntry(e, prefs.get(e))));
   }
 
   // Override the value setter to provide transparent consolidation of the

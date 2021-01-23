@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../common/entities.dart';
 import 'extensions.dart';
@@ -14,6 +15,7 @@ class Preferences extends LocalPreferences {
     @required this.defaultTheme,
     @required this.defaultFontSize,
     @required this.defaultFullscreen,
+    SharedPreferences sharedPreferencesInstance,
     @required Widget child,
   }) : super(
           defaultPrefs: {
@@ -23,6 +25,7 @@ class Preferences extends LocalPreferences {
             'first_time': true,
           },
           child: child,
+          sharedPreferencesInstance: sharedPreferencesInstance,
         );
 
   static Preferences of(BuildContext context) {

@@ -166,16 +166,14 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
           GestureDetector(
             onTap: () => nextPage(),
             child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 15),
               color: Colors.transparent,
               child: Center(
                 child: ConstrainedBox(
                   constraints:
                       BoxConstraints(maxWidth: Configuration.maxReaderWidth),
                   child: Container(
-                    padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 20,
-                        left: 15,
-                        right: 15),
+                    padding: EdgeInsets.only(top: 45, left: 15, right: 15),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -234,15 +232,13 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
             onTap: () => close(),
             child: Container(
               color: Colors.transparent,
+              padding: EdgeInsets.symmetric(horizontal: 15),
               child: Center(
                 child: ConstrainedBox(
                   constraints:
                       BoxConstraints(maxWidth: Configuration.maxReaderWidth),
                   child: Container(
-                    padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 20,
-                        left: 15,
-                        right: 15),
+                    padding: EdgeInsets.only(top: 45, left: 15, right: 15),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.start,

@@ -170,7 +170,9 @@ class DropCapParagraphPainter extends CustomPainter {
       ..textScaleFactor = scaleFactor
       ..layout();
 
-    indentedLinesPainter..maxLines = dropCapLines;
+    indentedLinesPainter
+      ..maxLines = dropCapLines + 1
+      ..textAlign = textAlign;
 
     do {
       wordIndex++;
@@ -183,10 +185,9 @@ class DropCapParagraphPainter extends CustomPainter {
               .replaceAll('\n ', '\n'),
           style: style,
         )
-        ..textAlign = textAlign
         ..layout(maxWidth: maxWidth - dropCapPainter.width - dropCapMargin);
-    } while (
-        !indentedLinesPainter.didExceedMaxLines && wordIndex < words.length);
+    } while (indentedLinesPainter.computeLineMetrics().length <= dropCapLines &&
+        wordIndex < words.length);
 
     while (words[wordIndex - 1] == '\n') wordIndex++;
 
@@ -216,10 +217,14 @@ class DropCapParagraphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     assert(_didLayout, 'You must call layout() at least once before painting.');
 
+    otherLinesPainter.paint(canvas,
+        Offset(0, indentedLinesPainter.height - style.height * style.fontSize));
+
+    canvas.clipRect(Rect.fromLTWH(
+        0, 0, size.width, style.height * style.fontSize * dropCapLines));
     dropCapPainter.paint(canvas, Offset(0, -_dropCapOffset));
     indentedLinesPainter.paint(
         canvas, Offset(dropCapPainter.width + dropCapMargin, 0));
-    otherLinesPainter.paint(canvas, Offset(0, indentedLinesPainter.height));
   }
 
   @override

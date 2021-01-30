@@ -22,8 +22,10 @@ class AlternativeSelectionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      child: Wrap(
+        direction: Axis.horizontal,
+        alignment: WrapAlignment.end,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: _dividedLabels().toList(),
       ),
     );
@@ -36,19 +38,24 @@ class AlternativeSelectionBar extends StatelessWidget {
       yield _buildLabel(index, iterator.current);
       while (iterator.moveNext()) {
         index++;
-        yield Builder(
-          builder: (context) => Container(
-            margin: EdgeInsets.symmetric(horizontal: 10),
-            height: 30,
-            decoration: BoxDecoration(
-              border: Border(
-                left:
-                    BorderSide(color: Theme.of(context).primaryColor, width: 1),
+        yield Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Builder(
+              builder: (context) => Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                height: 30,
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                        color: Theme.of(context).primaryColor, width: 1),
+                  ),
+                ),
               ),
             ),
-          ),
+            _buildLabel(index, iterator.current),
+          ],
         );
-        yield _buildLabel(index, iterator.current);
       }
     }
   }

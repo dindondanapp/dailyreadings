@@ -41,10 +41,7 @@ class Block {
 
   /// Whether the block can have a dropcap (must begin with a capital letter
   /// with no accents, be at least 100 chars and have type Text)
-  bool get dropCapCompatible =>
-      RegExp('[A-Z]').hasMatch(content.substring(0, 1)) &&
-      content.length >= 100 &&
-      type == BlockType.Text;
+  bool get dropCapCompatible => content.length >= 100 && type == BlockType.Text;
 }
 
 enum BlockType {

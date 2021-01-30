@@ -3,40 +3,38 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-class DropCapParagraphPainter extends CustomPainter {
-  final DropCapParagraphPaintersData paintersData;
-
-  DropCapParagraphPainter({@required this.paintersData});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    paintersData.paint(canvas);
-  }
-
-  @override
-  bool shouldRepaint(DropCapParagraphPainter oldDelegate) {
-    return false;
-  }
-}
-
+/// A widget that displays a paragrph with drop cap, if possible
 class DropCapParagraph extends StatelessWidget {
+  /// The text of the paragraph
   final String text;
+
+  /// The [TextStyle] of the paragraph
   final TextStyle style;
+
+  /// The text alignment of the paragraph; at this time only left and justify
+  /// are supported
   final TextAlign textAlign;
+
+  /// The number of lines the drop cap will extend for
   final int dropCapLines;
+
+  /// The margin on the left of the drop cap
   final double dropCapMargin;
+
+  /// The styling of the drop cap; at this time the font cannot be customized,
+  /// and will be forced into 'Charter'
   final TextStyle dropCapStyle;
 
-  static final regularCapCharacters = 'ABCDEFGHIJKLMNOPRSTUVWXYZ'.characters;
-  static final descentCapCharacters = 'Q'.characters;
-  static final accentCapCharacters = 'ÀÁÈÉÌÍÒÓÙÚ'.characters;
-
-  static final Characters allowedCharacters = [
-    ...regularCapCharacters,
-    ...descentCapCharacters,
-    ...accentCapCharacters
-  ].join().characters;
-
+  /// Creates a paragraph with drop capital, given the `text` of the paragraph.
+  ///
+  /// The following optional arguments can be provided:
+  /// - `style`: the [TextStyle] of the paragraph
+  /// - `dropCapLines`: the number of lines the drop cap will extend for
+  /// - `textAlign`: the text alignment of the paragraph; at this time only left
+  /// and justify are supported
+  /// - `dropCapMargin`: the margin on the left of the drop cap
+  /// - `dropCapStyle`: the styling of the drop cap; at this time the font
+  /// cannot be customized, and will be forced into 'Charter'
   DropCapParagraph({
     Key key,
     @required this.text,
@@ -49,16 +47,23 @@ class DropCapParagraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (allowedCharacters.contains(text.characters.first)) {
+    if (DropCapParagraphPainter.allowedCharacters
+        .contains(text.characters.first)) {
       return LayoutBuilder(
         builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final paintersData = generatePainters(
-              DefaultTextStyle.of(context).style.merge(style), width);
-
+          final maxWidth = constraints.maxWidth;
+          final painter = DropCapParagraphPainter(
+              text: text,
+              style: style,
+              textAlign: textAlign,
+              dropCapLines: dropCapLines,
+              dropCapMargin: dropCapMargin,
+              dropCapStyle: dropCapStyle,
+              context: context)
+            ..layout(maxWidth: maxWidth);
           return CustomPaint(
-            size: Size(width, paintersData.height),
-            painter: DropCapParagraphPainter(paintersData: paintersData),
+            size: Size(maxWidth, painter.height),
+            painter: painter,
           );
         },
       );
@@ -71,15 +76,71 @@ class DropCapParagraph extends StatelessWidget {
       );
     }
   }
+}
 
-  DropCapParagraphPaintersData generatePainters(TextStyle style, double width) {
-    final TextPainter dropCapPainter =
-        TextPainter(textDirection: TextDirection.ltr);
-    final TextPainter indentedLinesPainter =
-        TextPainter(textDirection: TextDirection.ltr);
-    final TextPainter otherLinesPainter =
-        TextPainter(textDirection: TextDirection.ltr);
+/// The [CustomPainter] that renders the [DropCapParagraph]
+class DropCapParagraphPainter extends CustomPainter {
+  //Static values
+  static final _regularCapCharacters = 'ABCDEFGHIJKLMNOPRSTUVWXYZ'.characters;
+  static final _descentCapCharacters = 'Q'.characters;
+  static final _accentCapCharacters = 'ÀÁÈÉÌÍÒÓÙÚ'.characters;
 
+  /// A list of allowed characters for the drop cap. Using different a different
+  /// characters as the initial character of the paragraph will presumably
+  /// result in clipping or overflow
+  static final Characters allowedCharacters = [
+    ..._regularCapCharacters,
+    ..._descentCapCharacters,
+    ..._accentCapCharacters
+  ].join().characters;
+
+  // Arguments
+  final String text;
+  final TextStyle style;
+  final TextAlign textAlign;
+  final int dropCapLines;
+  final double dropCapMargin;
+  final TextStyle dropCapStyle;
+  final BuildContext context;
+
+  // Features set at layout time
+  double _dropCapOffset = 0;
+  bool _didLayout = false;
+  final TextPainter dropCapPainter =
+      TextPainter(textDirection: TextDirection.ltr);
+  final TextPainter indentedLinesPainter =
+      TextPainter(textDirection: TextDirection.ltr);
+  final TextPainter otherLinesPainter =
+      TextPainter(textDirection: TextDirection.ltr);
+
+  /// Creates the [CustomPainter] that renders the [DropCapParagraph]
+  DropCapParagraphPainter({
+    @required this.context,
+    @required this.text,
+    @required this.style,
+    @required this.textAlign,
+    @required this.dropCapLines,
+    @required this.dropCapMargin,
+    @required this.dropCapStyle,
+  });
+
+  /// Total height of the [DropCapParagraph] to be rendered, only available
+  /// after layout() has been called
+  double get height {
+    assert(
+        _didLayout,
+        'The painter\'s height is not available'
+        'until layout() has been called at least once.');
+    return max(indentedLinesPainter.height, dropCapHeightTarget) +
+        otherLinesPainter.height;
+  }
+
+  /// Computes the visual position of all the elements of the
+  /// [DropCapParagraph], given the maximum width.
+  ///
+  /// It must be called at least once before painting or accessing the `height`
+  /// property.
+  void layout({@required double maxWidth}) {
     final firstLetter = text.characters.first;
     dropCapPainter
       ..text = TextSpan(
@@ -94,18 +155,16 @@ class DropCapParagraph extends StatelessWidget {
     final words = text.substring(1).replaceAll('\n', ' \n ').split(' ');
     int wordIndex = 0;
 
-    final heightTarget = style.fontSize * style.height * dropCapLines -
-        (style.height - 1) * style.fontSize;
     final metrics = dropCapPainter.computeLineMetrics().first;
 
-    final baseLine = metrics.baseline;
+    final baseline = metrics.baseline;
     final ascentCoefficient =
-        regularCapCharacters.contains(firstLetter) ? 0.9 : 1.3;
+        _regularCapCharacters.contains(firstLetter) ? 0.9 : 1.3;
     final descentCoefficient =
-        descentCapCharacters.contains(firstLetter) ? 0.2 : 0;
+        _descentCapCharacters.contains(firstLetter) ? 0.2 : 0;
 
-    final scaleFactor =
-        heightTarget / (baseLine * (ascentCoefficient + descentCoefficient));
+    final scaleFactor = dropCapHeightTarget /
+        (baseline * (ascentCoefficient + descentCoefficient));
 
     dropCapPainter
       ..textScaleFactor = scaleFactor
@@ -125,7 +184,7 @@ class DropCapParagraph extends StatelessWidget {
           style: style,
         )
         ..textAlign = textAlign
-        ..layout(maxWidth: width - dropCapPainter.width - dropCapMargin);
+        ..layout(maxWidth: maxWidth - dropCapPainter.width - dropCapMargin);
     } while (
         !indentedLinesPainter.didExceedMaxLines && wordIndex < words.length);
 
@@ -133,7 +192,7 @@ class DropCapParagraph extends StatelessWidget {
 
     final firstLineMetrics = indentedLinesPainter.computeLineMetrics().first;
     print(firstLineMetrics.baseline - firstLineMetrics.ascent / style.height);
-    final dropCapOffset = scaleFactor * baseLine * (1 - ascentCoefficient) -
+    _dropCapOffset = scaleFactor * baseline * (1 - ascentCoefficient) -
         (firstLineMetrics.baseline - firstLineMetrics.ascent / style.height);
 
     otherLinesPainter
@@ -148,44 +207,27 @@ class DropCapParagraph extends StatelessWidget {
         style: style,
       )
       ..textAlign = textAlign
-      ..layout(maxWidth: width);
+      ..layout(maxWidth: maxWidth);
 
-    return DropCapParagraphPaintersData(
-      dropCapOffset: dropCapOffset,
-      dropCapPainter: dropCapPainter,
-      dropCapMargin: dropCapMargin,
-      indentedLinesPainter: indentedLinesPainter,
-      otherLinesPainter: otherLinesPainter,
-      dropCapHeightTarget: heightTarget,
-    );
+    _didLayout = true;
   }
-}
 
-class DropCapParagraphPaintersData {
-  final TextPainter dropCapPainter;
-  final TextPainter indentedLinesPainter;
-  final TextPainter otherLinesPainter;
-  final double dropCapOffset;
-  final double dropCapHeightTarget;
-  final double dropCapMargin;
+  @override
+  void paint(Canvas canvas, Size size) {
+    assert(_didLayout, 'You must call layout() at least once before painting.');
 
-  double get height =>
-      max(indentedLinesPainter.height, dropCapHeightTarget) +
-      otherLinesPainter.height;
-
-  DropCapParagraphPaintersData({
-    @required this.dropCapPainter,
-    @required this.indentedLinesPainter,
-    @required this.otherLinesPainter,
-    @required this.dropCapOffset,
-    @required this.dropCapHeightTarget,
-    @required this.dropCapMargin,
-  });
-
-  void paint(Canvas canvas) {
-    dropCapPainter.paint(canvas, Offset(0, -dropCapOffset));
+    dropCapPainter.paint(canvas, Offset(0, -_dropCapOffset));
     indentedLinesPainter.paint(
         canvas, Offset(dropCapPainter.width + dropCapMargin, 0));
     otherLinesPainter.paint(canvas, Offset(0, indentedLinesPainter.height));
   }
+
+  @override
+  bool shouldRepaint(DropCapParagraphPainter oldDelegate) {
+    return context != oldDelegate.context;
+  }
+
+  double get dropCapHeightTarget =>
+      style.fontSize * style.height * dropCapLines -
+      (style.height - 1) * style.fontSize;
 }

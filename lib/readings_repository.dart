@@ -176,9 +176,7 @@ class ReadingsParser {
     if (data is List) {
       return data
           .map<Section>((element) {
-            if (element is Map &&
-                sectionTypeMatch.containsKey(element['name']) &&
-                element['alternatives'] is List) {
+            if (element is Map && element['alternatives'] is List) {
               return Section(
                 name: sectionTypeMatch[element['name']],
                 alternatives: (element["alternatives"] as List)

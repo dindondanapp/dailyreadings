@@ -86,51 +86,54 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
       child: Stack(
         children: [
           Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 300),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    'assets/logo.svg',
-                    width: 50,
-                  ),
-                  SizedBox(
-                    height: 40,
-                  ),
-                  Text(
-                    'Benvenuto!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      color: Theme.of(context).primaryColor,
-                      fontWeight: FontWeight.bold,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: 120),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: 300),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/logo.svg',
+                      width: 80,
                     ),
-                  ),
-                  SizedBox(height: 24),
-                  Text(
-                    'Per iniziare seleziona il rito della messa. '
-                    'Potrai cambiarlo in qualunque momento dalle impostazioni.',
-                    style: TextStyle(height: 1.5, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 24),
-                  RadioSelector<Rite>(
-                    direction: Axis.vertical,
-                    selected: Preferences.of(context).rite,
-                    onSelect: (value) => Preferences.of(context).rite = value,
-                    valueIcons: {
-                      Rite.roman: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Text('Romano'),
+                    SizedBox(
+                      height: 40,
+                    ),
+                    Text(
+                      'Benvenuto!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Rite.ambrosian: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 5),
-                        child: Text('Ambrosiano'),
-                      ),
-                    },
-                  ),
-                ],
+                    ),
+                    SizedBox(height: 24),
+                    Text(
+                      'Per iniziare seleziona il rito della messa. '
+                      'Potrai cambiarlo in qualunque momento dalle impostazioni.',
+                      style: TextStyle(height: 1.5, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 24),
+                    RadioSelector<Rite>(
+                      direction: Axis.vertical,
+                      selected: Preferences.of(context).rite,
+                      onSelect: (value) => Preferences.of(context).rite = value,
+                      valueIcons: {
+                        Rite.roman: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: Text('Romano'),
+                        ),
+                        Rite.ambrosian: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          child: Text('Ambrosiano'),
+                        ),
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

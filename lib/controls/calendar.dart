@@ -1,6 +1,7 @@
 import 'package:date_util/date_util.dart';
 import 'package:flutter/material.dart';
 
+import '../common/configuration.dart';
 import '../common/extensions.dart';
 
 /// A widget that displays a calendar and allows to select a day
@@ -33,6 +34,20 @@ class _CalendarState extends State<Calendar> {
 
   // The current month is used as the initial page
   final initialPageMonth = Month.now();
+
+  void monthNext() {
+    pageController.nextPage(
+      duration: Configuration.defaultTransitionDuration,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void monthPrev() {
+    pageController.previousPage(
+      duration: Configuration.defaultTransitionDuration,
+      curve: Curves.easeInOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +84,8 @@ class _CalendarState extends State<Calendar> {
           )
           .toList(),
       decoration: BoxDecoration(
-        border: Border.symmetric(
-          horizontal:
-              BorderSide(color: DefaultTextStyle.of(context).style.color),
+        border: Border(
+          bottom: BorderSide(color: DefaultTextStyle.of(context).style.color),
         ),
       ),
     );
@@ -98,16 +112,6 @@ class _CalendarState extends State<Calendar> {
       padding: EdgeInsets.only(top: 20),
       child: Stack(
         children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Text(
-              month.toLocaleMonthString().toUpperCase(),
-              style: TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 18,
-              ),
-            ),
-          ),
           Container(
             margin: EdgeInsets.only(top: 30),
             child: Center(
@@ -119,7 +123,7 @@ class _CalendarState extends State<Calendar> {
                     TableRow(
                       children: headingRow.children
                           .map((e) => SizedBox(
-                                height: 10,
+                                height: 5,
                               ))
                           .toList(),
                     ),
@@ -128,6 +132,37 @@ class _CalendarState extends State<Calendar> {
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                 ),
               ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: DefaultTextStyle.of(context).style.color,
+                    size: 20,
+                  ),
+                  onPressed: monthPrev,
+                ),
+                Text(
+                  month.toLocaleMonthString().toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.arrow_forward,
+                    color: DefaultTextStyle.of(context).style.color,
+                    size: 20,
+                  ),
+                  onPressed: monthNext,
+                ),
+              ],
             ),
           ),
         ],

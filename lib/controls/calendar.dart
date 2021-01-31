@@ -139,13 +139,14 @@ class _CalendarState extends State<Calendar> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // TODO: improve feedback for scroll limits
                 IconButton(
                   icon: Icon(
                     Icons.arrow_back,
                     color: DefaultTextStyle.of(context).style.color,
                     size: 20,
                   ),
-                  onPressed: monthPrev,
+                  onPressed: () => {if (pageController.page > 0) monthPrev()},
                 ),
                 Text(
                   month.toLocaleMonthString().toUpperCase(),

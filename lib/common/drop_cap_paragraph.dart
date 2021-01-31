@@ -159,7 +159,7 @@ class DropCapParagraphPainter extends CustomPainter {
 
     final baseline = metrics.baseline;
     final ascentCoefficient =
-        _regularCapCharacters.contains(firstLetter) ? 0.9 : 1.3;
+        _accentCapCharacters.contains(firstLetter) ? 1.3 : 0.9;
     final descentCoefficient =
         _descentCapCharacters.contains(firstLetter) ? 0.2 : 0;
 

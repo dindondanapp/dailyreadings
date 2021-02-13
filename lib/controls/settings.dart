@@ -25,7 +25,7 @@ class Settings extends StatelessWidget {
                   selected: Preferences.of(context).theme,
                   onSelect: (value) => Preferences.of(context).theme = value,
                   valueIcons: {
-                    ThemeMode.system: Icon(PlatformIcons.settings),
+                    ThemeMode.system: Text('Automatico'),
                     ThemeMode.dark: Icon(PlatformIcons.moon),
                     ThemeMode.light: Icon(PlatformIcons.sun),
                   },

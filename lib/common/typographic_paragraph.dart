@@ -1,10 +1,9 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 /// A widget that displays a paragrph with drop cap, if possible
-class DropCapParagraph extends StatelessWidget {
+class TypographicParagraph extends StatelessWidget {
   /// The text of the paragraph
   final String text;
 
@@ -35,7 +34,7 @@ class DropCapParagraph extends StatelessWidget {
   /// - `dropCapMargin`: the margin on the left of the drop cap
   /// - `dropCapStyle`: the styling of the drop cap; at this time the font
   /// cannot be customized, and will be forced into 'Charter'
-  DropCapParagraph({
+  TypographicParagraph({
     Key key,
     @required this.text,
     this.style,
@@ -54,7 +53,7 @@ class DropCapParagraph extends StatelessWidget {
           final maxWidth = constraints.maxWidth;
           final painter = DropCapParagraphPainter(
               text: text,
-              style: style,
+              style: DefaultTextStyle.of(context).style.merge(style),
               textAlign: textAlign,
               dropCapLines: dropCapLines,
               dropCapMargin: dropCapMargin,
@@ -78,7 +77,7 @@ class DropCapParagraph extends StatelessWidget {
   }
 }
 
-/// The [CustomPainter] that renders the [DropCapParagraph]
+/// The [CustomPainter] that renders the [TypographicParagraph]
 class DropCapParagraphPainter extends CustomPainter {
   //Static values
   static final _regularCapCharacters = 'ABCDEFGHIJKLMNOPRSTUVWXYZ'.characters;
@@ -113,7 +112,7 @@ class DropCapParagraphPainter extends CustomPainter {
   final TextPainter otherLinesPainter =
       TextPainter(textDirection: TextDirection.ltr);
 
-  /// Creates the [CustomPainter] that renders the [DropCapParagraph]
+  /// Creates the [CustomPainter] that renders the [TypographicParagraph]
   DropCapParagraphPainter({
     @required this.context,
     @required this.text,
@@ -124,19 +123,23 @@ class DropCapParagraphPainter extends CustomPainter {
     @required this.dropCapStyle,
   });
 
-  /// Total height of the [DropCapParagraph] to be rendered, only available
+  /// Total height of the [TypographicParagraph] to be rendered, only available
   /// after layout() has been called
   double get height {
     assert(
         _didLayout,
         'The painter\'s height is not available'
         'until layout() has been called at least once.');
-    return max(indentedLinesPainter.height, dropCapHeightTarget) +
+    return style.fontSize * style.height * dropCapLines +
         otherLinesPainter.height;
   }
 
+  double get _dropCapHeightTarget =>
+      style.fontSize * style.height * dropCapLines -
+      (style.height - 1) * style.fontSize;
+
   /// Computes the visual position of all the elements of the
-  /// [DropCapParagraph], given the maximum width.
+  /// [TypographicParagraph], given the maximum width.
   ///
   /// It must be called at least once before painting or accessing the `height`
   /// property.
@@ -163,7 +166,7 @@ class DropCapParagraphPainter extends CustomPainter {
     final descentCoefficient =
         _descentCapCharacters.contains(firstLetter) ? 0.2 : 0;
 
-    final scaleFactor = dropCapHeightTarget /
+    final scaleFactor = _dropCapHeightTarget /
         (baseline * (ascentCoefficient + descentCoefficient));
 
     dropCapPainter
@@ -231,8 +234,4 @@ class DropCapParagraphPainter extends CustomPainter {
   bool shouldRepaint(DropCapParagraphPainter oldDelegate) {
     return context != oldDelegate.context;
   }
-
-  double get dropCapHeightTarget =>
-      style.fontSize * style.height * dropCapLines -
-      (style.height - 1) * style.fontSize;
 }

@@ -1,5 +1,5 @@
-import 'package:dailyreadings/common/drop_cap_paragraph.dart';
 import 'package:dailyreadings/common/entities.dart';
+import 'package:dailyreadings/common/typographic_paragraph.dart';
 import 'package:flutter/material.dart';
 
 /// A widget that displays a single [Block] of text, possibly with a drop cap
@@ -17,19 +17,13 @@ class BlockWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (block.type == BlockType.Heading) {
-      return Container(
-        padding: EdgeInsets.only(
-          top: (DefaultTextStyle.of(context).style.fontSize ?? 14) * 2,
-          bottom: DefaultTextStyle.of(context).style.fontSize ?? 14,
-        ),
-        child: Text(
-          block.content.toUpperCase(),
-          style: TextStyle(
-            color: Theme.of(context).primaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: DefaultTextStyle.of(context).style.fontSize ?? 14,
-            fontFamily: 'SF Pro',
-          ),
+      return Text(
+        block.content.toUpperCase(),
+        style: TextStyle(
+          color: Theme.of(context).primaryColor,
+          fontWeight: FontWeight.bold,
+          fontSize: DefaultTextStyle.of(context).style.fontSize ?? 14,
+          fontFamily: 'SF Pro',
         ),
       );
     } else if (block.type == BlockType.Space) {
@@ -43,15 +37,23 @@ class BlockWidget extends StatelessWidget {
           color: Theme.of(context).primaryColor,
         ),
       );
+    } else if (block.type == BlockType.Source) {
+      return Text(
+        block.content,
+        style: TextStyle(
+          fontFamily: 'Charter',
+          height: 1.5,
+          fontStyle: FontStyle.italic,
+        ),
+      );
     } else {
       if (dropCap && block.dropCapCompatible) {
-        return DropCapParagraph(
+        return TypographicParagraph(
           text: block.content,
           dropCapLines: 3,
           style: TextStyle(
             fontFamily: 'Charter',
             height: 1.5,
-            fontSize: DefaultTextStyle.of(context).style.fontSize,
             color: DefaultTextStyle.of(context).style.color,
           ),
           dropCapStyle: TextStyle(

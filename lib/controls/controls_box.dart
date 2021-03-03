@@ -11,6 +11,8 @@ class ControlsBox extends StatelessWidget {
   final ControlsBoxController controller;
   final void Function() onCalendarTap;
   final void Function() onSettingsTap;
+  final void Function() onNextDayTap;
+  final void Function() onPreviousDayTap;
   final double size;
   final DayInterval availableInterval;
 
@@ -20,6 +22,8 @@ class ControlsBox extends StatelessWidget {
     @required this.size,
     @required this.onCalendarTap,
     @required this.onSettingsTap,
+    @required this.onNextDayTap,
+    @required this.onPreviousDayTap,
     this.availableInterval = const DayInterval.none(),
   }) : super(key: key);
 
@@ -76,6 +80,8 @@ class ControlsBox extends StatelessWidget {
                         controller: controller,
                         onCalendarTap: onCalendarTap,
                         onSettingsTap: onSettingsTap,
+                        onNextDayTap: onNextDayTap,
+                        onPreviousDayTap: onPreviousDayTap,
                       ),
                     ],
                   ),

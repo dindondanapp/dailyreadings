@@ -180,6 +180,8 @@ class _HomeState extends State<Home> {
           size: _controlsBoxSize,
           onCalendarTap: onCalendarTap,
           onSettingsTap: onSettingsTap,
+          onNextDayTap: onNextDayTap,
+          onPreviousDayTap: onPreviousDayTap,
           availableInterval: snapshot.data,
         );
       },
@@ -320,6 +322,14 @@ class _HomeState extends State<Home> {
           duration: Configuration.defaultTransitionDuration,
           curve: Curves.easeInOut);
     }
+  }
+
+  void onNextDayTap() {
+    _controlsState.day = _controlsState.day.add(Duration(days: 1));
+  }
+
+  void onPreviousDayTap() {
+    _controlsState.day = _controlsState.day.subtract(Duration(days: 1));
   }
 
   @override

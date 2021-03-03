@@ -10,12 +10,16 @@ class ControlsBar extends StatelessWidget {
   final ControlsBoxController controller;
   final void Function() onCalendarTap;
   final void Function() onSettingsTap;
+  final void Function() onNextDayTap;
+  final void Function() onPreviousDayTap;
   const ControlsBar(
       {Key key,
       @required this.date,
       @required this.controller,
       this.onCalendarTap,
-      this.onSettingsTap})
+      this.onSettingsTap,
+      this.onNextDayTap,
+      this.onPreviousDayTap})
       : super(key: key);
 
   @override
@@ -25,17 +29,53 @@ class ControlsBar extends StatelessWidget {
       builder: (context, value, widget) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildButton(
-            context: context,
-            icon: PlatformIcons.calendar,
-            label:
-                (date ?? DateTime.now()).toLocaleDateString(withWeekday: true),
-            selected: controller.selection == ControlsBoxSelection.calendar,
-            onTap: onCalendarTap,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildButton(
+                context: context,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios),
+                      onPressed: onPreviousDayTap,
+                      iconSize: 20,
+                      constraints: BoxConstraints(maxWidth: 44, maxHeight: 44),
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.all(12),
+                      color: Theme.of(context).accentColor,
+                    ),
+                    Icon(PlatformIcons.calendar),
+                    SizedBox(width: 10),
+                    Text(
+                      (date ?? DateTime.now())
+                          .toLocaleDateString(withWeekday: true),
+                      style: TextStyle(
+                        fontSize: 13,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward_ios),
+                      onPressed: onNextDayTap,
+                      iconSize: 20,
+                      constraints: BoxConstraints(maxWidth: 44, maxHeight: 44),
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.all(12),
+                      color: Theme.of(context).accentColor,
+                    ),
+                  ],
+                ),
+                selected: controller.selection == ControlsBoxSelection.calendar,
+                onTap: onCalendarTap,
+              ),
+            ],
           ),
           _buildButton(
             context: context,
-            icon: PlatformIcons.settings,
+            child: Container(
+              child: Icon(PlatformIcons.settings),
+              padding: EdgeInsets.all(10),
+            ),
             onTap: onSettingsTap,
             selected: controller.selection == ControlsBoxSelection.settings,
           ),
@@ -46,8 +86,7 @@ class ControlsBar extends StatelessWidget {
 
   Widget _buildButton(
       {@required BuildContext context,
-      IconData icon,
-      String label,
+      Widget child,
       @required void Function() onTap,
       bool selected = false}) {
     final selectedBackground = Theme.of(context).canvasColor;
@@ -67,23 +106,7 @@ class ControlsBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               onTap: onTap,
               child: Container(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    icon != null ? Icon(icon) : Container(),
-                    icon != null && label != null
-                        ? SizedBox(width: 10)
-                        : Container(),
-                    label != null
-                        ? Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 13,
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
+                child: child,
               ),
             ),
           ),

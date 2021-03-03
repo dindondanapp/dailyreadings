@@ -140,18 +140,12 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
           Container(
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: RaisedButton(
+              child: ElevatedButton(
                 onPressed: () => pageController.nextPage(
                   curve: Curves.easeInOut,
                   duration: Configuration.defaultTransitionDuration,
                 ),
-                elevation: 2,
-                focusElevation: 3,
-                hoverElevation: 3,
-                highlightElevation: 3,
                 child: Text('Avanti'),
-                textTheme: ButtonTextTheme.primary,
-                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),
@@ -180,19 +174,23 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Icon(
-                            Icons.arrow_upward,
-                            size: 24,
-                            color: Theme.of(context).primaryColor,
+                        Container(
+                          padding: EdgeInsets.only(left: 34),
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: Icon(
+                              Icons.arrow_upward,
+                              size: 24,
+                              color: Theme.of(context).primaryColor,
+                            ),
                           ),
                         ),
                         ConstrainedBox(
                           constraints: BoxConstraints(maxWidth: 380),
                           child: Text(
                             'Aprendo l\'app troverai sempre le letture di oggi. '
-                            'Per visualizzare le letture di un altro giorno tocca l\'icona del calendario.',
+                            'Per visualizzare le letture di un altro giorno tocca l\'icona del calendario'
+                            'oppure tocca le frecce per scorrere tra i giorni.',
                             style: TextStyle(
                               height: 1.5,
                               fontSize: 16,
@@ -209,15 +207,9 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
           Container(
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: RaisedButton(
+              child: ElevatedButton(
                 onPressed: () => nextPage(),
                 child: Text('Avanti'),
-                textTheme: ButtonTextTheme.primary,
-                elevation: 2,
-                focusElevation: 3,
-                hoverElevation: 3,
-                highlightElevation: 3,
-                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),
@@ -277,15 +269,9 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
           Container(
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: RaisedButton(
+              child: ElevatedButton(
                 onPressed: () => close(),
                 child: Text('Avanti'),
-                textTheme: ButtonTextTheme.primary,
-                elevation: 2,
-                focusElevation: 3,
-                hoverElevation: 3,
-                highlightElevation: 3,
-                color: Theme.of(context).primaryColor,
               ),
             ),
             padding: EdgeInsets.only(bottom: 40),

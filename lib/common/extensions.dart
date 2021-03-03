@@ -170,6 +170,16 @@ class Day extends DateTime {
       updatedDateTime.day,
     );
   }
+
+  @override
+  Day subtract(Duration duration) {
+    final updatedDateTime = super.subtract(duration);
+    return Day(
+      updatedDateTime.year,
+      updatedDateTime.month,
+      updatedDateTime.day,
+    );
+  }
 }
 
 class DayInterval {

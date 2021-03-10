@@ -24,6 +24,9 @@ class TypographicParagraph extends StatelessWidget {
   /// and will be forced into 'Charter'
   final TextStyle dropCapStyle;
 
+  /// Add indentation on line breaks
+  final bool indent;
+
   /// Creates a paragraph with drop capital, given the `text` of the paragraph.
   ///
   /// The following optional arguments can be provided:
@@ -42,6 +45,7 @@ class TypographicParagraph extends StatelessWidget {
     this.textAlign = TextAlign.left,
     this.dropCapMargin = 5,
     this.dropCapStyle = const TextStyle(color: Colors.grey),
+    this.indent = true,
   }) : super(key: key);
 
   @override
@@ -52,14 +56,15 @@ class TypographicParagraph extends StatelessWidget {
         builder: (context, constraints) {
           final maxWidth = constraints.maxWidth;
           final painter = DropCapParagraphPainter(
-              text: text,
-              style: DefaultTextStyle.of(context).style.merge(style),
-              textAlign: textAlign,
-              dropCapLines: dropCapLines,
-              dropCapMargin: dropCapMargin,
-              dropCapStyle: dropCapStyle,
-              context: context)
-            ..layout(maxWidth: maxWidth);
+            text: text,
+            style: DefaultTextStyle.of(context).style.merge(style),
+            textAlign: textAlign,
+            dropCapLines: dropCapLines,
+            dropCapMargin: dropCapMargin,
+            dropCapStyle: dropCapStyle,
+            indent: indent,
+            context: context,
+          )..layout(maxWidth: maxWidth);
           return CustomPaint(
             size: Size(maxWidth, painter.height),
             painter: painter,
@@ -120,13 +125,14 @@ class DropCapParagraphPainter extends CustomPainter {
   final double dropCapMargin;
   final TextStyle dropCapStyle;
   final BuildContext context;
+  final bool indent;
 
   // Features set at layout time
   double _dropCapOffset = 0;
   bool _didLayout = false;
   final TextPainter dropCapPainter =
       TextPainter(textDirection: TextDirection.ltr);
-  final TextPainter indentedLinesPainter =
+  final TextPainter dropCapLinesPainter =
       TextPainter(textDirection: TextDirection.ltr);
   final TextPainter otherLinesPainter =
       TextPainter(textDirection: TextDirection.ltr);
@@ -140,6 +146,7 @@ class DropCapParagraphPainter extends CustomPainter {
     @required this.dropCapLines,
     @required this.dropCapMargin,
     @required this.dropCapStyle,
+    @required this.indent,
   });
 
   /// Total height of the [TypographicParagraph] to be rendered, only available
@@ -174,6 +181,12 @@ class DropCapParagraphPainter extends CustomPainter {
         ? '$firstLetter$secondLetter'
         : firstLetter;
 
+    final prepareParagraphMainText = (string) => string
+        .split('\n')
+        .map((e) => e.trim())
+        .toList()
+        .join('\n' + (indent ? (' ' * 6) : ''));
+
     dropCapPainter
       ..text = TextSpan(
         text: dropCapText,
@@ -184,8 +197,12 @@ class DropCapParagraphPainter extends CustomPainter {
       )
       ..layout();
 
-    final words =
-        text.substring(dropCapText.length).replaceAll('\n', ' \n ').split(' ');
+    final words = text
+        .substring(dropCapText.length)
+        .trim()
+        .replaceAll('\n', ' \n ')
+        .split(' ');
+
     int wordIndex = 0;
 
     final metrics = dropCapPainter.computeLineMetrics().first;
@@ -201,28 +218,24 @@ class DropCapParagraphPainter extends CustomPainter {
       ..textScaleFactor = scaleFactor
       ..layout();
 
-    indentedLinesPainter
+    dropCapLinesPainter
       ..maxLines = dropCapLines + 1
       ..textAlign = textAlign;
 
     do {
       wordIndex++;
-      indentedLinesPainter
+      dropCapLinesPainter
         ..text = TextSpan(
-          text: words
-              .sublist(0, wordIndex)
-              .join(' ')
-              .replaceAll(' \n', '\n')
-              .replaceAll('\n ', '\n'),
+          text: prepareParagraphMainText(words.sublist(0, wordIndex).join(' ')),
           style: style,
         )
         ..layout(maxWidth: maxWidth - dropCapPainter.width - dropCapMargin);
-    } while (indentedLinesPainter.computeLineMetrics().length <= dropCapLines &&
+    } while (dropCapLinesPainter.computeLineMetrics().length <= dropCapLines &&
         wordIndex < words.length);
 
     while (words[wordIndex - 1] == '\n') wordIndex++;
 
-    final firstLineMetrics = indentedLinesPainter.computeLineMetrics().first;
+    final firstLineMetrics = dropCapLinesPainter.computeLineMetrics().first;
     print(firstLineMetrics.baseline - firstLineMetrics.ascent / style.height);
     _dropCapOffset = scaleFactor * baseline * (1 - ascentCoefficient) -
         (firstLineMetrics.baseline - firstLineMetrics.ascent / style.height);
@@ -231,11 +244,7 @@ class DropCapParagraphPainter extends CustomPainter {
       ..text = TextSpan(
         text: wordIndex >= words.length
             ? ''
-            : words
-                .sublist(wordIndex - 1)
-                .join(' ')
-                .replaceAll(' \n', '\n')
-                .replaceAll('\n ', '\n'),
+            : prepareParagraphMainText(words.sublist(wordIndex - 1).join(' ')),
         style: style,
       )
       ..textAlign = textAlign
@@ -249,12 +258,12 @@ class DropCapParagraphPainter extends CustomPainter {
     assert(_didLayout, 'You must call layout() at least once before painting.');
 
     otherLinesPainter.paint(canvas,
-        Offset(0, indentedLinesPainter.height - style.height * style.fontSize));
+        Offset(0, dropCapLinesPainter.height - style.height * style.fontSize));
 
     canvas.clipRect(Rect.fromLTWH(
         0, 0, size.width, style.height * style.fontSize * dropCapLines));
     dropCapPainter.paint(canvas, Offset(0, -_dropCapOffset));
-    indentedLinesPainter.paint(
+    dropCapLinesPainter.paint(
         canvas, Offset(dropCapPainter.width + dropCapMargin, 0));
   }
 

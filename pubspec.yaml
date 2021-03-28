@@ -34,12 +34,12 @@ flutter:
   fonts:
     - family: Charter
       fonts:
-        - asset: fonts/Charter Regular.ttf
-        - asset: fonts/Charter Bold.ttf
+        - asset: fonts/CharterLiturgy-Regular.ttf
+        - asset: fonts/CharterLiturgy-Bold.ttf
           weight: 700
-        - asset: fonts/Charter Italic.ttf
+        - asset: fonts/CharterLiturgy-Italic.ttf
           style: italic
-        - asset: fonts/Charter Bold Italic.ttf
+        - asset: fonts/CharterLiturgy-BoldItalic.ttf
           weight: 700
           style: italic
     - family: sficonsets

@@ -1,5 +1,5 @@
 import 'package:dailyreadings/common/entities.dart';
-import 'package:dailyreadings/common/typographic_paragraph.dart';
+import 'package:dailyreadings/common/typographic_text.dart';
 import 'package:flutter/material.dart';
 
 /// A widget that displays a single [Block] of text, possibly with a drop cap
@@ -38,41 +38,44 @@ class BlockWidget extends StatelessWidget {
         ),
       );
     } else if (block.type == BlockType.Source) {
-      return Text(
-        block.content,
+      return TypographicText(
+        text: block.content,
         style: TextStyle(
           fontFamily: 'Charter',
           height: 1.5,
           fontStyle: FontStyle.italic,
         ),
+        dropCapLines: 0,
+      );
+    } else if (block.type == BlockType.Emphasis) {
+      return TypographicText(
+        text: block.content,
+        style: TextStyle(
+          fontFamily: 'Charter',
+          height: 1.5,
+          fontWeight: FontWeight.bold,
+        ),
+        dropCapLines: 0,
       );
     } else {
-      if (dropCap && block.dropCapCompatible) {
-        return TypographicParagraph(
-          text: block.content,
-          dropCapLines: 3,
-          style: TextStyle(
-            fontFamily: 'Charter',
-            height: 1.5,
-            color: DefaultTextStyle.of(context).style.color,
-          ),
-          dropCapStyle: TextStyle(
-            color: Colors.grey,
-          ),
-          textAlign: TextAlign.justify,
-        );
-      } else {
-        return Text(
-          block.content,
-          style: TextStyle(
-            fontFamily: 'Charter',
-            fontWeight:
-                block.type == BlockType.Emphasis ? FontWeight.bold : null,
-            height: 1.5,
-          ),
-          textAlign: TextAlign.justify,
-        );
-      }
+      return TypographicText(
+        text: block.content,
+        dropCapLines: dropCap && block.dropCapCompatible ? 3 : 0,
+        style: TextStyle(
+          fontFamily: 'Charter',
+          height: 1.5,
+          color: DefaultTextStyle.of(context).style.color,
+        ),
+        dropCapStyle: TextStyle(
+          color: Colors.grey,
+        ),
+        indent: block.indentationType == IndentationType.inner
+            ? 20.0
+            : block.indentationType == IndentationType.outer
+                ? -20.0
+                : 0.0,
+        textAlign: TextAlign.justify,
+      );
     }
   }
 }

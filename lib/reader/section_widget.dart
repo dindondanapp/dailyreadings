@@ -40,18 +40,6 @@ class _SectionWidgetState extends State<SectionWidget> {
         .toList();
   }
 
-  bool get canHaveDropCap {
-    const dropCapSections = [
-      SectionType.rLectioPrima,
-      SectionType.rLectioSecunda,
-      SectionType.rEvangelium,
-      SectionType.aEpistula,
-      SectionType.aLectio,
-      SectionType.aEvangelium,
-    ];
-    return dropCapSections.contains(widget.section.name);
-  }
-
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<int>(
@@ -138,15 +126,8 @@ class _SectionWidgetState extends State<SectionWidget> {
         }
 
         if (currentBlock().type != BlockType.Space) {
-          // Render a generic content block, possibly with drop cap
-          final dropCap = canHaveDropCap &&
-              !dropCapAdded &&
-              currentBlock().type == BlockType.Text;
-          dropCapAdded |= dropCap;
-
           yield BlockWidget(
             block: currentBlock(),
-            dropCap: dropCap,
           );
         }
       }

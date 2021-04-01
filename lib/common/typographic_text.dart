@@ -117,8 +117,16 @@ class TypographicTextPainter extends CustomPainter {
   // Features set at layout time
   bool _didLayout = false;
 
-  DropCapPainter dropCapPainter;
-  final List<DelimitedTextPainter> delimitedTextPainters = [];
+  DropCapPainter _dropCapPainter;
+  final List<DelimitedTextPainter> _delimitedTextPainters = [];
+  int get _lines => _delimitedTextPainters.fold<int>(
+      0, (previousValue, element) => previousValue + element.lines);
+
+  double get _baseIndent {
+    return _lines < dropCapLines && _dropCapPainter != null
+        ? _dropCapPainter.width + dropCapMargin
+        : 0;
+  }
 
   /// Creates the [CustomPainter] that renders the [TypographicText]
   TypographicTextPainter({
@@ -140,8 +148,11 @@ class TypographicTextPainter extends CustomPainter {
         _didLayout,
         'The painter\'s height is not available'
         'until layout() has been called at least once.');
-    return delimitedTextPainters.fold<double>(
-        0, (previousValue, element) => previousValue + element.height);
+    return max(
+      _delimitedTextPainters.fold<double>(
+          0, (previousValue, element) => previousValue + element.height),
+      _dropCapPainter != null ? _dropCapPainter.heightTarget : 0,
+    );
   }
 
   double get _dropCapHeightTarget =>
@@ -165,10 +176,10 @@ class TypographicTextPainter extends CustomPainter {
       final String dropCapText = (firstWord.length == 2 &&
                   _safeSecondCharacters.contains(secondLetter)) ||
               _specialSecondCharacters.contains(secondLetter)
-          ? '$firstLetter$secondLetter'
+          ? firstLetter + secondLetter
           : firstLetter;
 
-      dropCapPainter = DropCapPainter(
+      _dropCapPainter = DropCapPainter(
           text: dropCapText,
           heightTarget: _dropCapHeightTarget,
           textAlign: textAlign,
@@ -180,161 +191,96 @@ class TypographicTextPainter extends CustomPainter {
           .map((e) => e.trim().split(' '))
           .toList());
     } else {
-      dropCapPainter = null;
+      _dropCapPainter = null;
 
       paragraphs
           .addAll(text.split('\n').map((e) => e.trim().split(' ')).toList());
     }
 
-    print(text);
-
-    int lineIndex = 0;
-
-    // Prepare line painters
-    delimitedTextPainters.clear();
+    // Create delimited text painters
+    _delimitedTextPainters.clear();
     for (final words in paragraphs) {
-      if (lineIndex == 0 && indent > 0) {
-        delimitedTextPainters.add(DelimitedTextPainter(
-          words: words.toList(),
-          maxWidth: maxWidth,
-          indent:
-              dropCapPainter != null ? dropCapPainter.width + dropCapMargin : 0,
-          maxLines: dropCapLines,
-          textAlign: textAlign,
-          style: style,
-          highlightSpecialChars: highlightSpecialChars,
-          context: context,
-        ));
+      if (indent > 0) {
+        if (_lines != 0) {
+          // The first row of the paragraph has indent only if it is not also
+          // the first line of the block (1)
+          _addDelimitedTextPainterIfNeeded(
+              maxWidth: maxWidth, words: words, indent: indent, maxLines: 1);
+        }
 
-        lineIndex += delimitedTextPainters.last.lines;
-
-        if (delimitedTextPainters.last.printedWords.length < words.length) {
-          delimitedTextPainters.add(DelimitedTextPainter(
-            words:
-                words.sublist(delimitedTextPainters.last.printedWords.length),
+        // Lines next to the drop cap, if present (2)
+        _addDelimitedTextPainterIfNeeded(
             maxWidth: maxWidth,
+            words: words,
             indent: 0,
-            textAlign: textAlign,
-            style: style,
-            highlightSpecialChars: highlightSpecialChars,
-            context: context,
-          ));
-        }
+            maxLines: dropCapLines - _lines);
 
-        lineIndex += delimitedTextPainters.last.lines;
-      } else if (indent > 0) {
-        delimitedTextPainters.add(DelimitedTextPainter(
-          words: words.toList(),
-          maxWidth: maxWidth,
-          indent: (lineIndex <= dropCapLines
-                  ? dropCapPainter != null
-                      ? dropCapPainter.width + dropCapMargin
-                      : 0
-                  : 0) +
-              indent,
-          maxLines: 1,
-          textAlign: textAlign,
-          style: style,
-          highlightSpecialChars: highlightSpecialChars,
-          context: context,
-        ));
+        // Other lines (3)
+        _addDelimitedTextPainterIfNeeded(
+            maxWidth: maxWidth, words: words, indent: 0);
 
-        words.removeRange(0, delimitedTextPainters.last.printedWords.length);
-        lineIndex += delimitedTextPainters.last.lines;
-
-        if (words.length > 0) {
-          if (lineIndex <= dropCapLines) {
-            delimitedTextPainters.add(DelimitedTextPainter(
-              words: words.toList(),
-              maxWidth: maxWidth,
-              indent: dropCapPainter != null
-                  ? dropCapPainter.width + dropCapMargin
-                  : 0,
-              maxLines: dropCapLines - lineIndex,
-              textAlign: textAlign,
-              style: style,
-              highlightSpecialChars: highlightSpecialChars,
-              context: context,
-            ));
-            words.removeRange(
-                0, delimitedTextPainters.last.printedWords.length);
-            lineIndex += delimitedTextPainters.last.lines;
-          }
-        }
-
-        if (delimitedTextPainters.last.words.length < words.length) {
-          delimitedTextPainters.add(DelimitedTextPainter(
-            words: words.toList(),
-            maxWidth: maxWidth,
-            indent: 0,
-            textAlign: textAlign,
-            style: style,
-            highlightSpecialChars: highlightSpecialChars,
-            context: context,
-          ));
-          lineIndex += delimitedTextPainters.last.lines;
-        }
+        // EXAMPLE:
+        //
+        // |---| Praesent commodo cursus magna,           : 2
+        // |   | vel scelerisque nisl consectetur et      : 2
+        // |---| tortor pellentesque ullamcorper          : 2
+        // mattis ligula justo.                           : 3
+        //     Sed posuere consectetur est at             : 1
+        // lobortis aenean eu leo quam                    : 3
+        // pellentesque ornare sem lacinia quam           : 3
+        // venenatis vestibulum.                          : 3
       } else {
-        delimitedTextPainters.add(
-          DelimitedTextPainter(
-            words: words.toList(),
+        // First line (no indent) (1)
+        _addDelimitedTextPainterIfNeeded(
+            maxWidth: maxWidth, words: words, indent: 0, maxLines: 1);
+
+        // Indented lines next to the drop cap, if present (2)
+        _addDelimitedTextPainterIfNeeded(
             maxWidth: maxWidth,
-            indent: (lineIndex <= dropCapLines
-                ? (dropCapPainter != null
-                    ? dropCapPainter.width + dropCapMargin
-                    : 0)
-                : 0),
-            maxLines: 1,
-            textAlign: textAlign,
-            style: style,
-            highlightSpecialChars: highlightSpecialChars,
-            context: context,
-          ),
-        );
+            words: words,
+            indent: indent.abs(),
+            maxLines: dropCapLines - _lines);
 
-        print(words
-            .sublist(0, delimitedTextPainters.last.printedWords.length)
-            .join(" "));
+        // Other intented lines (3)
+        _addDelimitedTextPainterIfNeeded(
+            maxWidth: maxWidth, words: words, indent: indent.abs());
 
-        words.removeRange(0, delimitedTextPainters.last.printedWords.length);
-        lineIndex += delimitedTextPainters.last.lines;
-
-        if (words.length > 0) {
-          if (lineIndex <= dropCapLines) {
-            delimitedTextPainters.add(DelimitedTextPainter(
-              words: words.toList(),
-              maxWidth: maxWidth,
-              indent: dropCapPainter != null
-                  ? dropCapPainter.width + dropCapMargin
-                  : 0 - indent,
-              maxLines: dropCapLines - lineIndex,
-              textAlign: textAlign,
-              style: style,
-              highlightSpecialChars: highlightSpecialChars,
-              context: context,
-            ));
-            lineIndex += delimitedTextPainters.last.lines;
-          }
-        }
-
-        if (delimitedTextPainters.last.words.length < words.length) {
-          delimitedTextPainters.add(DelimitedTextPainter(
-            words: words.toList(),
-            maxWidth: maxWidth,
-            indent: -indent,
-            textAlign: textAlign,
-            style: style,
-            highlightSpecialChars: highlightSpecialChars,
-            context: context,
-          ));
-          lineIndex += delimitedTextPainters.last.lines;
-        }
+        // EXAMPLE:
+        //
+        // |---| Praesent commodo cursus,                : 1
+        // |   | vel scelerisque nisl consectetur et     : 1
+        // |---|     tortor,                             : 2
+        // mattis ligula justo,                          : 1
+        // wed posuere consectetur est at lobortis       : 1
+        //     aenean eu leo quam.                       : 3
+        // Pellentesque ornare sem lacinia,              : 1
+        // venenatis vestibulum.                         : 1
       }
-
-      lineIndex++;
     }
 
     _didLayout = true;
+  }
+
+  void _addDelimitedTextPainterIfNeeded(
+      {@required List<String> words,
+      @required double indent,
+      @required double maxWidth,
+      int maxLines}) {
+    if (words.isNotEmpty && (maxLines == null || maxLines > 0)) {
+      _delimitedTextPainters.add(
+        DelimitedTextPainter(
+          words: words.toList(),
+          maxWidth: maxWidth,
+          indent: _baseIndent + indent,
+          maxLines: maxLines,
+          textAlign: textAlign,
+          style: style,
+          highlightSpecialChars: highlightSpecialChars,
+          context: context,
+        ),
+      );
+      words.removeRange(0, _delimitedTextPainters.last.printedWords.length);
+    }
   }
 
   @override
@@ -343,7 +289,7 @@ class TypographicTextPainter extends CustomPainter {
 
     double y = 0;
 
-    for (final delimitedTextPainter in delimitedTextPainters) {
+    for (final delimitedTextPainter in _delimitedTextPainters) {
       delimitedTextPainter.paint(
         canvas,
         size,
@@ -353,7 +299,7 @@ class TypographicTextPainter extends CustomPainter {
     }
 
     if (dropCapLines > 0) {
-      dropCapPainter.paint(canvas, Offset(0, 0));
+      _dropCapPainter.paint(canvas, Offset(0, 0));
     }
   }
 
@@ -440,10 +386,15 @@ class DelimitedTextPainter {
     @required this.maxWidth,
     @required TextAlign textAlign,
     @required this.style,
-    @required this.highlightSpecialChars,
+    this.highlightSpecialChars = true,
     this.maxLines,
     @required this.context,
-  }) {
+  })  : assert(maxLines == null || maxLines > 0,
+            'maxLines must be either null or a strictly positive number.'),
+        assert(words != null && words.isNotEmpty,
+            'words cannot be null nor empty'),
+        assert(maxWidth != null && maxWidth > style.fontSize * 5,
+            'maxWidth must be not null and at least 5 times the font size.') {
     textPainter.textAlign = textAlign;
 
     int wordIndex = maxLines == null ? words.length - 1 : 0;
@@ -451,8 +402,9 @@ class DelimitedTextPainter {
       final rawText = words.sublist(0, wordIndex).join(' ');
       final List<TextSpan> spans = [];
       if (highlightSpecialChars) {
-        final highlightRegExp =
-            RegExp("\u211F\.?|\u2123\.?|\u2720", caseSensitive: true);
+        final highlightRegExp = RegExp(
+            "\u211F\.?|\u2123\.?|\u2720|(^|\n| )C: |(^|\n| )A: ",
+            caseSensitive: true);
         final fadeRegExp = RegExp("\u2731|\u271D", caseSensitive: true);
         final regExp = RegExp(
             [highlightRegExp.pattern, fadeRegExp.pattern].join('|'),

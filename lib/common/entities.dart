@@ -38,25 +38,17 @@ class Block {
   final String content;
 
   Block({@required this.type, @required this.content});
-
-  /// Whether the block can have a dropcap (must begin with a capital letter
-  /// with no accents, be at least 100 chars and have type Text)
-  bool get dropCapCompatible => content.length >= 100 && type == BlockType.Text;
-  IndentationType get indentationType => type == BlockType.Text
-      ? IndentationType.inner
-      : type == BlockType.Verse
-          ? IndentationType.outer
-          : IndentationType.none;
 }
 
 enum BlockType {
   Heading, // Heading of a section (sometimes there may be multiple headings)
   Subheading,
-  Emphasis,
-  Source, // A block that introduces a text stating the soruce
+  Source, // A block that introduces a text stating the source
   Reference, // Reference to scriptures
-  Text, // Normal text
-  Verse, // A verse in a poetry-stile text
+  Passage, // A passage from scriptures
+  Poetry, // Poetry text
+  Text, // Generic text
+  Emphasis, // A generic emphasised text
   Space // Just an empty line
 }
 
@@ -123,5 +115,3 @@ enum SectionType {
 }
 
 enum Rite { ambrosian, roman }
-
-enum IndentationType { inner, outer, none }

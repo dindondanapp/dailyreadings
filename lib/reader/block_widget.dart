@@ -5,14 +5,8 @@ import 'package:flutter/material.dart';
 /// A widget that displays a single [Block] of text, possibly with a drop cap
 class BlockWidget extends StatelessWidget {
   final Block block;
-  final bool dropCap;
 
-  BlockWidget({Key key, @required this.block, this.dropCap = false})
-      : super(key: key) {
-    if (block.type != BlockType.Text && dropCap) {
-      throw Exception('Only text blocks can have drop cap.');
-    }
-  }
+  BlockWidget({Key key, @required this.block}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +54,7 @@ class BlockWidget extends StatelessWidget {
     } else {
       return TypographicText(
         text: block.content,
-        dropCapLines: dropCap && block.dropCapCompatible ? 3 : 0,
+        dropCapLines: block.type == BlockType.Passage ? 3 : 0,
         style: TextStyle(
           fontFamily: 'Charter',
           height: 1.5,
@@ -69,9 +63,9 @@ class BlockWidget extends StatelessWidget {
         dropCapStyle: TextStyle(
           color: Colors.grey,
         ),
-        indent: block.indentationType == IndentationType.inner
+        indent: block.type == BlockType.Passage
             ? 20.0
-            : block.indentationType == IndentationType.outer
+            : block.type == BlockType.Poetry
                 ? -20.0
                 : 0.0,
         textAlign: TextAlign.justify,

@@ -219,8 +219,12 @@ class ReadingsParser {
                     content: blockMap['content'].toString(),
                   );
                 } else {
-                  print('Block parsing failed for $blockMap');
-                  return null;
+                  print(
+                      'Block parsing failed for $blockMap. Resorting to Text as default.');
+                  return Block(
+                    type: BlockType.Text,
+                    content: blockMap['content'].toString(),
+                  );
                 }
               },
             )

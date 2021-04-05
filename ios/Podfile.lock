@@ -79,7 +79,11 @@ PODS:
     - nanopb/encode (= 1.30906.0)
   - nanopb/decode (1.30906.0)
   - nanopb/encode (1.30906.0)
+  - package_info (0.0.1):
+    - Flutter
   - PromisesObjC (1.2.11)
+  - share (0.0.1):
+    - Flutter
   - shared_preferences (0.0.1):
     - Flutter
   - url_launcher (0.0.1):
@@ -91,6 +95,8 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - FirebaseFirestore (from `https://github.com/invertase/firestore-ios-sdk-frameworks.git`, tag `6.33.0`)
   - Flutter (from `Flutter`)
+  - package_info (from `.symlinks/plugins/package_info/ios`)
+  - share (from `.symlinks/plugins/share/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
 
@@ -119,6 +125,10 @@ EXTERNAL SOURCES:
     :tag: 6.33.0
   Flutter:
     :path: Flutter
+  package_info:
+    :path: ".symlinks/plugins/package_info/ios"
+  share:
+    :path: ".symlinks/plugins/share/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
   url_launcher:
@@ -144,10 +154,12 @@ SPEC CHECKSUMS:
   GoogleDataTransport: f56af7caa4ed338dc8e138a5d7c5973e66440833
   GoogleUtilities: 7f2f5a07f888cdb145101d6042bc4422f57e70b3
   nanopb: 59317e09cf1f1a0af72f12af412d54edf52603fc
+  package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   PromisesObjC: 8c196f5a328c2cba3e74624585467a557dcb482f
+  share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
 
 PODFILE CHECKSUM: 00175f0298e7d9a413aaa6c6cd17b8210674d12c
 
-COCOAPODS: 1.10.0
+COCOAPODS: 1.10.1

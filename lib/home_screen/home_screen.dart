@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:dailyreadings/common/configuration.dart';
+import 'package:dailyreadings/info_screen/info_screen.dart';
 import 'package:dailyreadings/reader/readings_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,14 +17,14 @@ import 'home_scroll_physics.dart';
 import 'statusbar_blend_cover.dart';
 
 /// Main widget, that contains all the dynamic content of the app
-class Home extends StatefulWidget {
-  Home({Key key}) : super(key: key);
+class HomeScreen extends StatefulWidget {
+  HomeScreen({Key key}) : super(key: key);
   @override
-  _HomeState createState() => _HomeState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeState extends State<Home> {
-  final double _controlsBoxSize = 300;
+class _HomeScreenState extends State<HomeScreen> {
+  static const double _controlsBoxSize = 354;
 
   // A repository to access a remote reading. Will be initialized in initState.
   ReadingsRepository _repository;
@@ -53,14 +54,7 @@ class _HomeState extends State<Home> {
   @override
   void didChangeDependencies() {
     // Update status bar brightness and visibility
-    if (Preferences.of(context).fullscreen) {
-      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
-    } else {
-      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
-      SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(statusBarBrightness: Theme.of(context).brightness),
-      );
-    }
+    _setStatusBarAppearance();
 
     // Update scroll controller
     _scrollController = ScrollController(initialScrollOffset: _controlsBoxSize);
@@ -119,7 +113,7 @@ class _HomeState extends State<Home> {
                   ),
                   child: Column(
                     children: [
-                      _buildControlsBoxAndBar(),
+                      _buildControlsBox(),
                       DefaultTextStyle.merge(
                         style: TextStyle(
                           fontSize: Preferences.of(context).fontSize.toDouble(),
@@ -170,7 +164,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildControlsBoxAndBar() {
+  Widget _buildControlsBox() {
     return StreamBuilder<DayInterval>(
       stream: _repository.calendarIntervalStream,
       initialData: DayInterval.none(),
@@ -183,6 +177,7 @@ class _HomeState extends State<Home> {
           onNextDayTap: onNextDayTap,
           onPreviousDayTap: onPreviousDayTap,
           availableInterval: snapshot.data,
+          showInfo: showInfo,
         );
       },
     );
@@ -338,6 +333,26 @@ class _HomeState extends State<Home> {
       _controlsState.day.month,
       _controlsState.day.day - 1,
     );
+  }
+
+  void showInfo() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => InfoScreen()),
+    ).then((value) {
+      _setStatusBarAppearance();
+    });
+  }
+
+  void _setStatusBarAppearance() {
+    if (Preferences.of(context).fullscreen) {
+      SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
+    } else {
+      SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(statusBarBrightness: Theme.of(context).brightness),
+      );
+    }
   }
 
   @override

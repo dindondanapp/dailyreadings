@@ -1,4 +1,5 @@
 import 'package:dailyreadings/common/configuration.dart';
+import 'package:dailyreadings/common/platform_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../common/extensions.dart';
@@ -13,8 +14,11 @@ class ControlsBox extends StatelessWidget {
   final void Function() onSettingsTap;
   final void Function() onNextDayTap;
   final void Function() onPreviousDayTap;
+  final void Function() showInfo;
   final double size;
   final DayInterval availableInterval;
+
+  static const _appBarSize = 54.0;
 
   const ControlsBox({
     Key key,
@@ -24,6 +28,7 @@ class ControlsBox extends StatelessWidget {
     @required this.onSettingsTap,
     @required this.onNextDayTap,
     @required this.onPreviousDayTap,
+    @required this.showInfo,
     this.availableInterval = const DayInterval.none(),
   }) : super(key: key);
 
@@ -55,40 +60,72 @@ class ControlsBox extends StatelessWidget {
                   ? Theme.of(context).backgroundColor
                   : Theme.of(context).backgroundColor.withAlpha(0);
               final opacity = isOpen ? 1.0 : 0.0;
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: AnimatedContainer(
-                  curve: Curves.ease,
-                  duration: Configuration.defaultTransitionDuration,
-                  color: color,
-                  child: Column(
-                    children: [
-                      AnimatedOpacity(
-                        opacity: opacity,
-                        duration: Configuration.defaultTransitionDuration,
-                        curve: Curves.ease,
-                        child: SizedBox(
-                          height: size,
-                          child: IgnorePointer(
-                            ignoring: !isOpen,
-                            child: _buildChildForSelection(),
+              return Column(
+                children: [
+                  _buildAppBar(context),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: AnimatedContainer(
+                      curve: Curves.ease,
+                      duration: Configuration.defaultTransitionDuration,
+                      color: color,
+                      child: Column(
+                        children: [
+                          AnimatedOpacity(
+                            opacity: opacity,
+                            duration: Configuration.defaultTransitionDuration,
+                            curve: Curves.ease,
+                            child: SizedBox(
+                              height: size - _appBarSize,
+                              child: IgnorePointer(
+                                ignoring: !isOpen,
+                                child: _buildChildForSelection(),
+                              ),
+                            ),
                           ),
-                        ),
+                          ControlsBar(
+                            date: controller.day,
+                            controller: controller,
+                            onCalendarTap: onCalendarTap,
+                            onSettingsTap: onSettingsTap,
+                            onNextDayTap: onNextDayTap,
+                            onPreviousDayTap: onPreviousDayTap,
+                          ),
+                        ],
                       ),
-                      ControlsBar(
-                        date: controller.day,
-                        controller: controller,
-                        onCalendarTap: onCalendarTap,
-                        onSettingsTap: onSettingsTap,
-                        onNextDayTap: onNextDayTap,
-                        onPreviousDayTap: onPreviousDayTap,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               );
             }),
       ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: Icon(PlatformIcons.info),
+                onPressed: showInfo,
+                color: Theme.of(context).accentColor,
+              ),
+              Text(
+                "Letture del giorno",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      height: _appBarSize,
     );
   }
 

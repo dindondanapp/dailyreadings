@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 3073 3072" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:square;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-18984,-6518)">
+        <g id="Tavola-da-disegno3" serif:id="Tavola da disegno3" transform="matrix(6,0,0,6,11334.4,6518)">
+            <rect x="1275" y="0" width="512" height="512" style="fill:none;"/>
+            <clipPath id="_clip1">
+                <rect x="1275" y="0" width="512" height="512"/>
+            </clipPath>
+            <g clip-path="url(#_clip1)">
+                <g transform="matrix(0.166667,0,0,0.166667,-1889.07,-1086.33)">
+                    <circle cx="20520.4" cy="8054" r="1536" style="fill:rgb(110,149,203);"/>
+                    <clipPath id="_clip2">
+                        <circle cx="20520.4" cy="8054" r="1536"/>
+                    </clipPath>
+                    <g clip-path="url(#_clip2)">
+                        <g transform="matrix(1.14024,0,0,1.14024,2291.74,-1223.13)">
+                            <path d="M15538.5,7610.99L15381.8,7701.42C15381.8,7701.42 15333.4,7617.47 15301.7,7562.68C15294.7,7550.41 15292.7,7535.84 15296.4,7522.16C15300.1,7508.48 15309,7496.82 15321.3,7489.73C15321.3,7489.73 15321.3,7489.73 15321.3,7489.73C15346.8,7474.99 15379.5,7483.74 15394.2,7509.28C15407.6,7532.4 15420.9,7555.53 15420.9,7555.53C15420.9,7555.53 15789.5,7342.75 15921.4,7266.61C15946.9,7251.86 15979.6,7260.61 15994.3,7286.15C15994.3,7286.15 15994.3,7286.15 15994.3,7286.16C16009,7311.7 16000.3,7344.36 15974.8,7359.1C15929.9,7385.02 15868.5,7420.46 15868.5,7420.46L15868.5,8743.06C15921.5,8743.06 15971.6,8743.07 16014.2,8743.09C16360.1,8743.21 16450.2,8662.07 16523.2,8444.67L16630,8444.67L16580,8849.9L15382.8,8849.9L15382.8,8743.09C15382.8,8743.09 15411.9,8743.08 15458.7,8743.08C15502.7,8743.07 15538.5,8707.34 15538.5,8663.26C15538.5,8405.37 15538.5,7610.99 15538.5,7610.99Z" style="fill:white;"/>
+                        </g>
+                    </g>
+                    <circle cx="20520.4" cy="8054" r="1536" style="fill:none;stroke:white;stroke-width:4.5px;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

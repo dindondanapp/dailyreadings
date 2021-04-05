@@ -49,6 +49,7 @@ enum BlockType {
   Poetry, // Poetry text
   Text, // Generic text
   Emphasis, // A generic emphasised text
+  Note, // A generic note text that is not meant to be read aloud
   Space // Just an empty line
 }
 

@@ -95,7 +95,7 @@ class _FirstTimeTutorialState extends State<FirstTimeTutorial> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SvgPicture.asset(
-                      'assets/logo.svg',
+                      'assets/icon.svg',
                       width: 80,
                     ),
                     SizedBox(

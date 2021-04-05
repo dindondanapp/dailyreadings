@@ -37,7 +37,6 @@ class BlockWidget extends StatelessWidget {
         style: TextStyle(
           fontFamily: 'Charter',
           height: 1.5,
-          fontStyle: FontStyle.italic,
         ),
         dropCapLines: 0,
       );
@@ -48,6 +47,16 @@ class BlockWidget extends StatelessWidget {
           fontFamily: 'Charter',
           height: 1.5,
           fontWeight: FontWeight.bold,
+        ),
+        dropCapLines: 0,
+      );
+    } else if (block.type == BlockType.Note) {
+      return TypographicText(
+        text: block.content,
+        style: TextStyle(
+          fontFamily: 'Charter',
+          height: 1.5,
+          fontStyle: FontStyle.italic,
         ),
         dropCapLines: 0,
       );

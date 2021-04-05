@@ -7,14 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'common/extensions.dart';
 import 'common/palette.dart';
 import 'common/preferences.dart';
-import 'home/home.dart';
+import 'home_screen/home_screen.dart';
 
 void main() async {
   // Perform preliminary operations and preload assets
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await precachePicture(
-      ExactAssetPicture(SvgPicture.svgStringDecoder, 'assets/logo.svg'), null);
+      ExactAssetPicture(SvgPicture.svgStringDecoder, 'assets/icon.svg'), null);
 
   final preloaded = MyAppPreloadedData(
     sharedPreferencesInstance: await SharedPreferences.getInstance(),
@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Preferences(
-      defaultFontSize: 14.0,
+      defaultFontSize: 16.0,
       defaultTheme: ThemeMode.system,
       defaultFullscreen: false,
       sharedPreferencesInstance: preloaded.sharedPreferencesInstance,
@@ -61,7 +61,7 @@ class MyApp extends StatelessWidget {
       themeMode: Preferences.of(context).theme,
       title: 'Letture del giorno',
       debugShowCheckedModeBanner: false,
-      home: Home(),
+      home: HomeScreen(),
     );
   }
 }

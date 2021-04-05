@@ -16,4 +16,10 @@ class PlatformIcons {
       Platform.isIOS ? SFSymbols.exclamationmark_circle : Icons.error_outline;
   static get downloaad =>
       Platform.isIOS ? SFSymbols.cloud_download : Icons.cloud_download;
+  static get info =>
+      Platform.isIOS ? SFSymbols.info_circle : Icons.info_outline;
+  static get mail => Platform.isIOS ? SFSymbols.envelope : Icons.mail;
+  static get share => Platform.isIOS ? SFSymbols.square_arrow_up : Icons.share;
+  static get donate => Platform.isIOS ? SFSymbols.heart : Icons.favorite;
+  static get review => Platform.isIOS ? SFSymbols.star : Icons.star;
 }

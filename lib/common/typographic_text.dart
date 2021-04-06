@@ -166,13 +166,18 @@ class TypographicTextPainter extends CustomPainter {
   /// property.
   void layout({@required double maxWidth}) {
     final List<List<String>> paragraphs = [];
-    if (dropCapLines > 0) {
+
+    final firstWord = text.characters.split(' '.characters).first;
+    final String firstLetter =
+        firstWord.length >= 1 ? firstWord.characterAt(0).toString() : '';
+    final String secondLetter =
+        firstWord.length >= 2 ? firstWord.characterAt(1).toString() : '';
+
+    final canHaveDropcap =
+        DropCapPainter.capHeightCapitals.contains(firstLetter);
+
+    if (dropCapLines > 0 && canHaveDropcap) {
       // Split drop cap from paragraphs (list of list of words)
-      final firstWord = text.characters.split(' '.characters).first;
-      final String firstLetter =
-          firstWord.length >= 1 ? firstWord.characterAt(0).toString() : '';
-      final String secondLetter =
-          firstWord.length >= 2 ? firstWord.characterAt(1).toString() : '';
       final String dropCapText = (firstWord.length == 2 &&
                   _safeSecondCharacters.contains(secondLetter)) ||
               _specialSecondCharacters.contains(secondLetter)
@@ -298,7 +303,7 @@ class TypographicTextPainter extends CustomPainter {
       y += delimitedTextPainter.height;
     }
 
-    if (dropCapLines > 0) {
+    if (_dropCapPainter != null) {
       _dropCapPainter.paint(canvas, Offset(0, 0));
     }
   }

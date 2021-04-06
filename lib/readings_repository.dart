@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dailyreadings/common/configuration.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -50,6 +51,8 @@ class ReadingsRepository {
   /// repository for the given [day]
   static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
     return FirebaseFirestore.instance
+        .collection('versions')
+        .doc(Configuration.backendVersion)
         .collection('readings')
         .doc(id.serialize())
         .snapshots()
@@ -70,6 +73,8 @@ class ReadingsRepository {
   /// the available readings for the selected rite
   static Stream<DayInterval> getCalendarIntervalStream(Rite rite) {
     return FirebaseFirestore.instance
+        .collection('versions')
+        .doc(Configuration.backendVersion)
         .collection('meta')
         .doc('calendar')
         .snapshots()

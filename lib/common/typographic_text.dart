@@ -353,7 +353,7 @@ class DropCapPainter {
     final metrics = textPainter.computeLineMetrics().first;
 
     final baseline = metrics.baseline;
-    final ascentCoefficient = accentCapitals.contains(firstLetter) ? 1.3 : 0.9;
+    final ascentCoefficient = accentCapitals.contains(firstLetter) ? 1.3 : 0.96;
     final descentCoefficient = descentCapitals.contains(firstLetter) ? 0.2 : 0;
 
     final scaleFactor =

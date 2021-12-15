@@ -13,10 +13,14 @@ class ReadingsRepository {
   ReadingsDataIdentifier _id;
   ReadingsDataIdentifier get id => _id;
 
+  // Stream controllers and subscriptions
   static final _readingsStreamController =
       StreamController<ReadingsSnapshot>.broadcast();
   static final _calendarIntervalStreamController =
       StreamController<DayInterval>.broadcast();
+
+  StreamSubscription<ReadingsSnapshot> _readingsSubscription;
+  StreamSubscription<DayInterval> _calendarIntervalSubscription;
 
   /// A stream of [ReadingsData] objects
   final Stream<ReadingsSnapshot> readingsStream;
@@ -38,10 +42,17 @@ class ReadingsRepository {
     if (this.id == null ||
         value.day != this.id.day ||
         value.rite != this.id.rite) {
-      getReadingsStream(value)
+      // Remove old subscriptions
+      _readingsSubscription?.cancel();
+      _calendarIntervalSubscription?.cancel();
+
+      // Create subscriptions to readings and calendar interval associated with
+      // the new id
+      _readingsSubscription = _getReadingsStream(value)
           .listen((snapshot) => _readingsStreamController.add(snapshot));
-      getCalendarIntervalStream(value.rite).listen(
-          (snapshot) => _calendarIntervalStreamController.add(snapshot));
+      _calendarIntervalSubscription = _getCalendarIntervalStream(value.rite)
+          .listen(
+              (snapshot) => _calendarIntervalStreamController.add(snapshot));
     }
 
     this._id = value;
@@ -49,7 +60,8 @@ class ReadingsRepository {
 
   /// Creates [Stream] of [ReadingsData] objects from the remote
   /// repository for the given [day]
-  static Stream<ReadingsSnapshot> getReadingsStream(ReadingsDataIdentifier id) {
+  static Stream<ReadingsSnapshot> _getReadingsStream(
+      ReadingsDataIdentifier id) {
     return FirebaseFirestore.instance
         .collection('versions')
         .doc(Configuration.backendVersion)
@@ -71,7 +83,7 @@ class ReadingsRepository {
 
   /// Creates a broadcast [Stream] of [DayInterval] that describes the dates of
   /// the available readings for the selected rite
-  static Stream<DayInterval> getCalendarIntervalStream(Rite rite) {
+  static Stream<DayInterval> _getCalendarIntervalStream(Rite rite) {
     return FirebaseFirestore.instance
         .collection('versions')
         .doc(Configuration.backendVersion)

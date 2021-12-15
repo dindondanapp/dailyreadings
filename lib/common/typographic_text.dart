@@ -408,7 +408,7 @@ class DelimitedTextPainter {
       final List<TextSpan> spans = [];
       if (highlightSpecialChars) {
         final highlightRegExp = RegExp(
-            "\u211F\.?|\u2123\.?|\u2720|(^|\n| )C: |(^|\n| )A: ",
+            "\u211F\.?|\u2123\.?|\u2720|(^|\n| )C: |(^|\n| )A: |(^|\n| )A e C: |(^|\n| )C e A: ",
             caseSensitive: true);
         final fadeRegExp = RegExp("\u2731|\u271D", caseSensitive: true);
         final regExp = RegExp(

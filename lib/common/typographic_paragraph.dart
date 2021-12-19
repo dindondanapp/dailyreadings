@@ -80,17 +80,36 @@ class TypographicParagraph extends StatelessWidget {
 /// The [CustomPainter] that renders the [TypographicParagraph]
 class DropCapParagraphPainter extends CustomPainter {
   //Static values
-  static final _regularCapCharacters = 'ABCDEFGHIJKLMNOPRSTUVWXYZ'.characters;
-  static final _descentCapCharacters = 'Q'.characters;
-  static final _accentCapCharacters = 'ÀÁÈÉÌÍÒÓÙÚ'.characters;
+  /// Capital caracters that fit within baseline and cap height
+  static final _capHeightCapitals = 'ABCDEFGHIJKLMNOPRSTUVWXYZ'.characters;
+
+  /// Capital caracters with a descender
+  static final _descentCapitals = 'Q'.characters;
+
+  /// Capital caracters with an accent
+  static final _accentCapitals = 'ÀÁÈÉÌÍÒÓÙÚ'.characters;
+
+  /// The size of the drop cap is computed basing on the first letter. Only
+  /// characters that fit within the bound of [_capHeightCapitals] are safe to
+  /// add to the drop cap, without any risk of vertical overflow
+  static final _safeSecondCharacters = [
+    // All regular cap-height capital letters
+    ..._capHeightCapitals,
+    // All lower case letters without a descender
+    ...'abcdefhiklmnorstuvwz'.characters,
+  ].join().characters;
+
+  /// Special characters that can be added to the drop cap even if there is no
+  /// space after
+  static final _specialSecondCharacters = '.,\':-?'.characters;
 
   /// A list of allowed characters for the drop cap. Using different a different
   /// characters as the initial character of the paragraph will presumably
   /// result in clipping or overflow
   static final Characters allowedCharacters = [
-    ..._regularCapCharacters,
-    ..._descentCapCharacters,
-    ..._accentCapCharacters
+    ..._capHeightCapitals,
+    ..._descentCapitals,
+    ..._accentCapitals
   ].join().characters;
 
   // Arguments
@@ -144,10 +163,20 @@ class DropCapParagraphPainter extends CustomPainter {
   /// It must be called at least once before painting or accessing the `height`
   /// property.
   void layout({@required double maxWidth}) {
-    final firstLetter = text.characters.first;
+    final firstWord = text.characters.split(' '.characters).first;
+    final String firstLetter =
+        firstWord.length >= 1 ? firstWord.characterAt(0).toString() : '';
+    final String secondLetter =
+        firstWord.length >= 2 ? firstWord.characterAt(1).toString() : '';
+    final String dropCapText = (firstWord.length == 2 &&
+                _safeSecondCharacters.contains(secondLetter)) ||
+            _specialSecondCharacters.contains(secondLetter)
+        ? '$firstLetter$secondLetter'
+        : firstLetter;
+
     dropCapPainter
       ..text = TextSpan(
-        text: firstLetter,
+        text: dropCapText,
         style: dropCapStyle.copyWith(
           height: 1,
           fontFamily: 'Charter',
@@ -155,16 +184,15 @@ class DropCapParagraphPainter extends CustomPainter {
       )
       ..layout();
 
-    final words = text.substring(1).replaceAll('\n', ' \n ').split(' ');
+    final words =
+        text.substring(dropCapText.length).replaceAll('\n', ' \n ').split(' ');
     int wordIndex = 0;
 
     final metrics = dropCapPainter.computeLineMetrics().first;
 
     final baseline = metrics.baseline;
-    final ascentCoefficient =
-        _accentCapCharacters.contains(firstLetter) ? 1.3 : 0.9;
-    final descentCoefficient =
-        _descentCapCharacters.contains(firstLetter) ? 0.2 : 0;
+    final ascentCoefficient = _accentCapitals.contains(firstLetter) ? 1.3 : 0.9;
+    final descentCoefficient = _descentCapitals.contains(firstLetter) ? 0.2 : 0;
 
     final scaleFactor = _dropCapHeightTarget /
         (baseline * (ascentCoefficient + descentCoefficient));
